@@ -42,3 +42,12 @@ next-env.d.ts
 /work/
 .pnpm-store/
 .devserver.*.log
+
+# Unity generated files
+/unity-client/Library/
+/unity-client/Logs/
+/unity-client/Temp/
+/unity-client/UserSettings/
+/unity-client/unity-batch.log
+/unity-client/unity-build*.log
+/unity-client/Build/
