@@ -49,3 +49,12 @@
 - 点击“应用并保存”后使用 `PlayerPrefs` 保存在当前 Windows 用户配置中。
 - “登录 Windows 后自动启动”写入当前用户的 `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`，不需要管理员权限。
 - 当前 V13 已通过 Unity 编译和 Windows Player 构建，但按要求未做运行时托盘与面板测试。
+
+## 安装包
+
+`installer/DesktopCat.nsi` 使用开源 NSIS 3.12 将 V13 打包成当前用户安装程序。
+
+- 默认安装至 `%LOCALAPPDATA%\Programs\YourCatDesktopPet`，无需管理员权限。
+- 创建开始菜单快捷方式，可选创建桌面快捷方式。
+- 注册到 Windows“已安装的应用”，支持完整卸载。
+- 安装包输出至 `dist/YourCatDesktopPet-Setup-0.1.0.exe`。

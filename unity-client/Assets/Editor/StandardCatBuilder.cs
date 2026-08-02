@@ -8,6 +8,9 @@ namespace YourCat.DesktopPet.Editor
     public static class StandardCatBuilder
     {
         private const string OutputDirectory = "Assets/StandardCat";
+        private const string SourceModelPath = OutputDirectory + "/Source/cat_v2_tabby_plush.fbx";
+        private const string TabbyTexturePath = OutputDirectory + "/Source/cat_tabby_fur_tile_v2.png";
+        private const string TabbyMaterialPath = OutputDirectory + "/StandardCatTabby.mat";
         private const string PrefabPath = OutputDirectory + "/StandardCat.prefab";
         private const string ControllerPath = OutputDirectory + "/StandardCat.controller";
 
@@ -15,108 +18,211 @@ namespace YourCat.DesktopPet.Editor
         public static void Create()
         {
             Directory.CreateDirectory(OutputDirectory);
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>(SourceModelPath);
+            if (source == null)
+                throw new FileNotFoundException($"Missing imported cat model: {SourceModelPath}");
 
             var root = new GameObject("StandardCat");
-            var fur = CreateMaterial("StandardCatFur", new Color(0.58f, 0.42f, 0.30f));
-            var dark = CreateMaterial("StandardCatDark", new Color(0.12f, 0.09f, 0.07f));
-            var eye = CreateMaterial("StandardCatEyes", new Color(0.35f, 0.72f, 0.32f));
+            var poseRoot = new GameObject("PoseRoot");
+            poseRoot.transform.SetParent(root.transform, false);
+            var model = (GameObject)PrefabUtility.InstantiatePrefab(source);
+            model.name = "Model";
+            model.transform.SetParent(poseRoot.transform, false);
+            NormalizeModel(model, 2.65f);
+            ApplyTabbyMaterial(model);
+            ConfigureRigPivots(model.transform);
 
-            var torso = Part(root.transform, "Torso", PrimitiveType.Sphere, new Vector3(0f, 0.85f, 0f), new Vector3(1.25f, 0.85f, 0.72f), fur);
-            var chest = Part(torso.transform, "Chest", PrimitiveType.Sphere, new Vector3(0.44f, 0.22f, 0f), new Vector3(0.72f, 0.78f, 0.68f), fur);
-            var head = Part(root.transform, "Head", PrimitiveType.Sphere, new Vector3(0.88f, 1.42f, 0f), new Vector3(0.68f, 0.62f, 0.62f), fur);
-
-            Ear(head.transform, "LeftEar", new Vector3(0f, 0.48f, 0.30f), fur);
-            Ear(head.transform, "RightEar", new Vector3(0f, 0.48f, -0.30f), fur);
-            Eye(head.transform, "LeftEye", new Vector3(0.48f, 0.10f, 0.21f), eye, dark);
-            Eye(head.transform, "RightEye", new Vector3(0.48f, 0.10f, -0.21f), eye, dark);
-            Part(head.transform, "Muzzle", PrimitiveType.Sphere, new Vector3(0.51f, -0.10f, 0f), new Vector3(0.24f, 0.20f, 0.32f), fur);
-            Part(head.transform, "Nose", PrimitiveType.Sphere, new Vector3(0.65f, -0.07f, 0f), new Vector3(0.10f, 0.08f, 0.12f), dark);
-
-            Leg(root.transform, "FrontLeftLeg", new Vector3(0.58f, 0.36f, 0.31f), fur);
-            Leg(root.transform, "FrontRightLeg", new Vector3(0.58f, 0.36f, -0.31f), fur);
-            Leg(root.transform, "BackLeftLeg", new Vector3(-0.45f, 0.36f, 0.31f), fur);
-            Leg(root.transform, "BackRightLeg", new Vector3(-0.45f, 0.36f, -0.31f), fur);
-            Tail(root.transform, fur);
-
-            var collider = root.AddComponent<CapsuleCollider>();
-            collider.center = new Vector3(0f, 0.85f, 0f);
-            collider.radius = 0.72f;
-            collider.height = 2.2f;
-            collider.direction = 0;
+            foreach (var sourceAnimator in model.GetComponentsInChildren<Animator>(true))
+                Object.DestroyImmediate(sourceAnimator);
 
             var animator = root.AddComponent<Animator>();
-            animator.runtimeAnimatorController = CreateAnimatorController();
+            animator.runtimeAnimatorController = CreateAnimatorController(root.transform, poseRoot.transform, model.transform);
+
+            var bounds = CalculateBounds(root);
+            var collider = root.AddComponent<BoxCollider>();
+            collider.center = root.transform.InverseTransformPoint(bounds.center);
+            collider.size = new Vector3(bounds.size.x * 0.9f, bounds.size.y * 0.96f, bounds.size.z * 0.9f);
 
             var morph = root.AddComponent<CatMorphController>();
             var morphObject = new SerializedObject(morph);
-            morphObject.FindProperty("torso").objectReferenceValue = torso.transform;
-            morphObject.FindProperty("head").objectReferenceValue = head.transform;
-            morphObject.FindProperty("leftEar").objectReferenceValue = head.transform.Find("LeftEar");
-            morphObject.FindProperty("rightEar").objectReferenceValue = head.transform.Find("RightEar");
+            morphObject.FindProperty("body").objectReferenceValue = model.transform;
+            morphObject.FindProperty("head").objectReferenceValue = Find(model.transform, "Head");
+            morphObject.FindProperty("neck").objectReferenceValue = Find(model.transform, "Neck");
             var legs = morphObject.FindProperty("legs");
-            legs.arraySize = 4;
-            legs.GetArrayElementAtIndex(0).objectReferenceValue = root.transform.Find("FrontLeftLeg");
-            legs.GetArrayElementAtIndex(1).objectReferenceValue = root.transform.Find("FrontRightLeg");
-            legs.GetArrayElementAtIndex(2).objectReferenceValue = root.transform.Find("BackLeftLeg");
-            legs.GetArrayElementAtIndex(3).objectReferenceValue = root.transform.Find("BackRightLeg");
+            var legNames = new[] { "L_Leg_Upper", "R_Leg_Upper", "L_BLeg_Upper", "R_BLeg_Upper" };
+            legs.arraySize = legNames.Length;
+            for (var index = 0; index < legNames.Length; index++)
+                legs.GetArrayElementAtIndex(index).objectReferenceValue = Find(model.transform, legNames[index]);
             morphObject.ApplyModifiedPropertiesWithoutUndo();
 
             PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
             Object.DestroyImmediate(root);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"Created {PrefabPath}");
+            Debug.Log($"Created anatomically rigged cat prefab at {PrefabPath}");
         }
 
-        private static AnimatorController CreateAnimatorController()
+        private static void ApplyTabbyMaterial(GameObject model)
+        {
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(TabbyTexturePath);
+            if (texture == null)
+                throw new FileNotFoundException($"Missing generated tabby texture: {TabbyTexturePath}");
+
+            var material = AssetDatabase.LoadAssetAtPath<Material>(TabbyMaterialPath);
+            if (material == null)
+            {
+                material = new Material(Shader.Find("Standard")) { name = "StandardCatTabby" };
+                AssetDatabase.CreateAsset(material, TabbyMaterialPath);
+            }
+
+            material.mainTexture = texture;
+            material.color = new Color(0.72f, 0.53f, 0.34f, 1f);
+            material.SetFloat("_Metallic", 0f);
+            material.SetFloat("_Glossiness", 0.22f);
+            EditorUtility.SetDirty(material);
+
+            foreach (var renderer in model.GetComponentsInChildren<Renderer>(true))
+            {
+                if (renderer.name.StartsWith("Fur_", System.StringComparison.Ordinal))
+                    renderer.sharedMaterial = material;
+            }
+        }
+
+        private static void ConfigureRigPivots(Transform model)
+        {
+            SetWorldPivot(Find(model, "root"), new Vector3(0f, 1.05f, 0f));
+            SetWorldPivot(Find(model, "butt"), new Vector3(0.7f, 1.2f, 0f));
+            SetWorldPivot(Find(model, "belly"), new Vector3(0f, 1.2f, 0f));
+            SetWorldPivot(Find(model, "chest"), new Vector3(-0.72f, 1.38f, 0f));
+            SetWorldPivot(Find(model, "Neck"), new Vector3(-1.02f, 1.72f, 0f));
+            SetWorldPivot(Find(model, "Head"), new Vector3(-1.2f, 1.98f, 0f));
+            SetWorldPivot(Find(model, "tail1"), new Vector3(1.02f, 1.43f, 0f));
+            SetWorldPivot(Find(model, "tail2"), new Vector3(1.82f, 1.2f, 0f));
+
+            foreach (var (prefix, x, z) in new[]
+            {
+                ("L_Leg", -0.83f, 0.34f),
+                ("R_Leg", -0.83f, -0.34f),
+                ("L_BLeg", 0.73f, 0.34f),
+                ("R_BLeg", 0.73f, -0.34f),
+            })
+            {
+                SetWorldPivot(Find(model, prefix + "_Upper"), new Vector3(x, 1.05f, z));
+                SetWorldPivot(Find(model, prefix + "_Lower"), new Vector3(x, 0.58f, z));
+            }
+        }
+
+        private static void SetWorldPivot(Transform target, Vector3 worldPosition)
+        {
+            var children = new (Transform transform, Vector3 position, Quaternion rotation)[target.childCount];
+            for (var index = 0; index < target.childCount; index++)
+            {
+                var child = target.GetChild(index);
+                children[index] = (child, child.position, child.rotation);
+            }
+
+            target.position = worldPosition;
+            foreach (var child in children)
+                child.transform.SetPositionAndRotation(child.position, child.rotation);
+        }
+
+        private static AnimatorController CreateAnimatorController(Transform root, Transform poseRoot, Transform model)
         {
             DeleteAssetIfPresent(ControllerPath);
+
+            var head = Find(model, "Head");
+            var neck = Find(model, "Neck");
+            var chest = Find(model, "chest");
+            var tail1 = Find(model, "tail1");
+            var tail2 = Find(model, "tail2");
+            var frontLeft = Find(model, "L_Leg_Upper");
+            var frontRight = Find(model, "R_Leg_Upper");
+            var backLeft = Find(model, "L_BLeg_Upper");
+            var backRight = Find(model, "R_BLeg_Upper");
+            var frontLeftLower = Find(model, "L_Leg_Lower");
+            var frontRightLower = Find(model, "R_Leg_Lower");
+            var backLeftLower = Find(model, "L_BLeg_Lower");
+            var backRightLower = Find(model, "R_BLeg_Lower");
+
             var idle = CreateClip("Idle", true, clip =>
             {
-                PositionCurve(clip, "Torso", "m_LocalPosition.y", 0.85f, 0.88f, 0.85f);
-                RotationCurve(clip, "Tail", "localEulerAnglesRaw.z", 0f, 8f, 0f);
+                ScaleCurve(clip, root, chest, Vector3.one, new Vector3(1.015f, 1.015f, 1.015f), Vector3.one);
+                RotationCurve(clip, root, tail1, Vector3.zero, new Vector3(0f, 0f, 10f), Vector3.zero);
+                RotationCurve(clip, root, tail2, Vector3.zero, new Vector3(0f, 0f, 7f), Vector3.zero);
             });
+
             var walk = CreateClip("Walk", true, clip =>
             {
-                PositionCurve(clip, "Torso", "m_LocalPosition.y", 0.85f, 0.92f, 0.85f);
-                RotationCurve(clip, "FrontLeftLeg", "localEulerAnglesRaw.z", -18f, 18f, -18f);
-                RotationCurve(clip, "FrontRightLeg", "localEulerAnglesRaw.z", 18f, -18f, 18f);
-                RotationCurve(clip, "BackLeftLeg", "localEulerAnglesRaw.z", 18f, -18f, 18f);
-                RotationCurve(clip, "BackRightLeg", "localEulerAnglesRaw.z", -18f, 18f, -18f);
-                RotationCurve(clip, "Tail", "localEulerAnglesRaw.z", -8f, 12f, -8f);
+                RotationCurve(clip, root, frontLeft, new Vector3(0f, 0f, -24f), new Vector3(0f, 0f, 24f), new Vector3(0f, 0f, -24f));
+                RotationCurve(clip, root, frontRight, new Vector3(0f, 0f, 24f), new Vector3(0f, 0f, -24f), new Vector3(0f, 0f, 24f));
+                RotationCurve(clip, root, backLeft, new Vector3(0f, 0f, 24f), new Vector3(0f, 0f, -24f), new Vector3(0f, 0f, 24f));
+                RotationCurve(clip, root, backRight, new Vector3(0f, 0f, -24f), new Vector3(0f, 0f, 24f), new Vector3(0f, 0f, -24f));
+                RotationCurve(clip, root, tail1, new Vector3(0f, 0f, -10f), new Vector3(0f, 0f, 12f), new Vector3(0f, 0f, -10f));
+                PositionCurve(clip, root, poseRoot, Vector3.zero, new Vector3(0f, 0.06f, 0f), Vector3.zero);
             });
+
             var sit = CreateClip("Sit", false, clip =>
             {
-                PositionCurve(clip, "Torso", "m_LocalPosition.y", 0.85f, 0.62f, 0.62f);
-                RotationCurve(clip, "Torso", "localEulerAnglesRaw.z", 0f, -12f, -12f);
-                RotationCurve(clip, "BackLeftLeg", "localEulerAnglesRaw.z", 0f, 65f, 65f);
-                RotationCurve(clip, "BackRightLeg", "localEulerAnglesRaw.z", 0f, 65f, 65f);
+                PositionCurve(clip, root, poseRoot, Vector3.zero, new Vector3(0f, -0.22f, 0f), new Vector3(0f, -0.22f, 0f));
+                RotationCurve(clip, root, poseRoot, Vector3.zero, new Vector3(0f, 0f, -12f), new Vector3(0f, 0f, -12f));
+                RotationCurve(clip, root, backLeft, Vector3.zero, new Vector3(0f, 0f, 62f), new Vector3(0f, 0f, 62f));
+                RotationCurve(clip, root, backRight, Vector3.zero, new Vector3(0f, 0f, 62f), new Vector3(0f, 0f, 62f));
+                RotationCurve(clip, root, backLeftLower, Vector3.zero, new Vector3(0f, 0f, -82f), new Vector3(0f, 0f, -82f));
+                RotationCurve(clip, root, backRightLower, Vector3.zero, new Vector3(0f, 0f, -82f), new Vector3(0f, 0f, -82f));
+                RotationCurve(clip, root, neck, Vector3.zero, new Vector3(0f, 0f, -10f), new Vector3(0f, 0f, -10f));
             });
+
             var lieDown = CreateClip("LieDown", false, clip =>
             {
-                PositionCurve(clip, "Torso", "m_LocalPosition.y", 0.85f, 0.38f, 0.38f);
-                RotationCurve(clip, "FrontLeftLeg", "localEulerAnglesRaw.z", 0f, -72f, -72f);
-                RotationCurve(clip, "FrontRightLeg", "localEulerAnglesRaw.z", 0f, -72f, -72f);
-                RotationCurve(clip, "BackLeftLeg", "localEulerAnglesRaw.z", 0f, 72f, 72f);
-                RotationCurve(clip, "BackRightLeg", "localEulerAnglesRaw.z", 0f, 72f, 72f);
+                ScaleCurve(clip, root, poseRoot, Vector3.one, new Vector3(1f, 0.5f, 1f), new Vector3(1f, 0.5f, 1f));
+                RotationCurve(clip, root, frontLeft, Vector3.zero, new Vector3(0f, 0f, 68f), new Vector3(0f, 0f, 68f));
+                RotationCurve(clip, root, frontRight, Vector3.zero, new Vector3(0f, 0f, 68f), new Vector3(0f, 0f, 68f));
+                RotationCurve(clip, root, frontLeftLower, Vector3.zero, new Vector3(0f, 0f, -88f), new Vector3(0f, 0f, -88f));
+                RotationCurve(clip, root, frontRightLower, Vector3.zero, new Vector3(0f, 0f, -88f), new Vector3(0f, 0f, -88f));
+                RotationCurve(clip, root, backLeft, Vector3.zero, new Vector3(0f, 0f, 52f), new Vector3(0f, 0f, 52f));
+                RotationCurve(clip, root, backRight, Vector3.zero, new Vector3(0f, 0f, 52f), new Vector3(0f, 0f, 52f));
             });
+
             var sleep = CreateClip("Sleep", true, clip =>
             {
-                PositionCurve(clip, "Torso", "m_LocalPosition.y", 0.38f, 0.41f, 0.38f);
-                RotationCurve(clip, "Head", "localEulerAnglesRaw.z", 0f, -8f, 0f);
-                RotationCurve(clip, "Tail", "localEulerAnglesRaw.z", 0f, 5f, 0f);
+                ScaleCurve(clip, root, poseRoot, new Vector3(1f, 0.5f, 1f), new Vector3(1f, 0.52f, 1f), new Vector3(1f, 0.5f, 1f));
+                RotationCurve(clip, root, frontLeft, new Vector3(0f, 0f, 68f), new Vector3(0f, 0f, 72f), new Vector3(0f, 0f, 68f));
+                RotationCurve(clip, root, frontRight, new Vector3(0f, 0f, 68f), new Vector3(0f, 0f, 72f), new Vector3(0f, 0f, 68f));
+                RotationCurve(clip, root, frontLeftLower, new Vector3(0f, 0f, -88f), new Vector3(0f, 0f, -92f), new Vector3(0f, 0f, -88f));
+                RotationCurve(clip, root, frontRightLower, new Vector3(0f, 0f, -88f), new Vector3(0f, 0f, -92f), new Vector3(0f, 0f, -88f));
+                RotationCurve(clip, root, backLeft, new Vector3(0f, 0f, 52f), new Vector3(0f, 0f, 56f), new Vector3(0f, 0f, 52f));
+                RotationCurve(clip, root, backRight, new Vector3(0f, 0f, 52f), new Vector3(0f, 0f, 56f), new Vector3(0f, 0f, 52f));
+                RotationCurve(clip, root, neck, new Vector3(0f, 0f, 12f), new Vector3(0f, 0f, 16f), new Vector3(0f, 0f, 12f));
+                RotationCurve(clip, root, head, new Vector3(0f, 0f, 8f), new Vector3(0f, 0f, 11f), new Vector3(0f, 0f, 8f));
+                RotationCurve(clip, root, tail1, new Vector3(0f, 0f, -8f), new Vector3(0f, 0f, -5f), new Vector3(0f, 0f, -8f));
+                foreach (var eyeName in new[]
+                {
+                    "EyeGreen_L", "EyeGreen_R", "EyeBlack_L", "EyeBlack_R",
+                    "EyeHighlight_L", "EyeHighlight_R",
+                })
+                {
+                    ScaleCurve(
+                        clip,
+                        root,
+                        Find(model, eyeName),
+                        new Vector3(1f, 1f, 0.08f),
+                        new Vector3(1f, 1f, 0.04f),
+                        new Vector3(1f, 1f, 0.08f));
+                }
             });
+
             var petted = CreateClip("Petted", false, clip =>
             {
-                PositionCurve(clip, "Head", "m_LocalPosition.y", 1.42f, 1.52f, 1.42f);
-                RotationCurve(clip, "Head", "localEulerAnglesRaw.z", 0f, 12f, 0f);
-                RotationCurve(clip, "Tail", "localEulerAnglesRaw.z", -5f, 22f, -5f);
+                RotationCurve(clip, root, head, Vector3.zero, new Vector3(0f, 0f, 18f), Vector3.zero);
+                RotationCurve(clip, root, tail1, Vector3.zero, new Vector3(0f, 0f, 28f), Vector3.zero);
+                RotationCurve(clip, root, tail2, Vector3.zero, new Vector3(0f, 0f, 18f), Vector3.zero);
             });
+
             var eat = CreateClip("Eat", false, clip =>
             {
-                PositionCurve(clip, "Head", "m_LocalPosition.y", 1.42f, 0.92f, 1.42f);
-                RotationCurve(clip, "Head", "localEulerAnglesRaw.z", 0f, 32f, 0f);
-                PositionCurve(clip, "Torso", "m_LocalPosition.y", 0.85f, 0.78f, 0.85f);
+                RotationCurve(clip, root, neck, Vector3.zero, new Vector3(0f, 0f, 42f), Vector3.zero);
+                RotationCurve(clip, root, head, Vector3.zero, new Vector3(0f, 0f, 28f), Vector3.zero);
+                PositionCurve(clip, root, poseRoot, Vector3.zero, new Vector3(0f, -0.12f, 0f), Vector3.zero);
             });
 
             var controller = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
@@ -128,21 +234,14 @@ namespace YourCat.DesktopPet.Editor
             controller.AddParameter("Eat", AnimatorControllerParameterType.Trigger);
 
             var machine = controller.layers[0].stateMachine;
-            var idleState = machine.AddState("Idle");
-            idleState.motion = idle;
+            var idleState = AddState(machine, "Idle", idle);
             machine.defaultState = idleState;
-            var walkState = machine.AddState("Walk");
-            walkState.motion = walk;
-            var sitState = machine.AddState("Sit");
-            sitState.motion = sit;
-            var lieState = machine.AddState("LieDown");
-            lieState.motion = lieDown;
-            var sleepState = machine.AddState("Sleep");
-            sleepState.motion = sleep;
-            var pettedState = machine.AddState("Petted");
-            pettedState.motion = petted;
-            var eatState = machine.AddState("Eat");
-            eatState.motion = eat;
+            var walkState = AddState(machine, "Walk", walk);
+            var sitState = AddState(machine, "Sit", sit);
+            var lieState = AddState(machine, "LieDown", lieDown);
+            var sleepState = AddState(machine, "Sleep", sleep);
+            var pettedState = AddState(machine, "Petted", petted);
+            var eatState = AddState(machine, "Eat", eat);
 
             AddCondition(idleState, walkState, AnimatorConditionMode.Greater, 0.1f, "Speed");
             AddCondition(walkState, idleState, AnimatorConditionMode.Less, 0.1f, "Speed");
@@ -159,6 +258,13 @@ namespace YourCat.DesktopPet.Editor
             return controller;
         }
 
+        private static AnimatorState AddState(AnimatorStateMachine machine, string name, AnimationClip clip)
+        {
+            var state = machine.AddState(name);
+            state.motion = clip;
+            return state;
+        }
+
         private static AnimationClip CreateClip(string name, bool loop, System.Action<AnimationClip> configure)
         {
             var path = $"{OutputDirectory}/{name}.anim";
@@ -172,22 +278,43 @@ namespace YourCat.DesktopPet.Editor
             return clip;
         }
 
-        private static void PositionCurve(AnimationClip clip, string path, string property, float start, float middle, float end)
+        private static void PositionCurve(AnimationClip clip, Transform root, Transform target, Vector3 startOffset, Vector3 middleOffset, Vector3 endOffset)
         {
-            SetCurve(clip, path, property, start, middle, end);
+            var path = AnimationUtility.CalculateTransformPath(target, root);
+            var baseValue = target.localPosition;
+            SetVectorCurve(clip, path, "m_LocalPosition", baseValue + startOffset, baseValue + middleOffset, baseValue + endOffset);
         }
 
-        private static void RotationCurve(AnimationClip clip, string path, string property, float start, float middle, float end)
+        private static void ScaleCurve(AnimationClip clip, Transform root, Transform target, Vector3 startFactor, Vector3 middleFactor, Vector3 endFactor)
         {
-            SetCurve(clip, path, property, start, middle, end);
+            var path = AnimationUtility.CalculateTransformPath(target, root);
+            var baseValue = target.localScale;
+            SetVectorCurve(clip, path, "m_LocalScale", Vector3.Scale(baseValue, startFactor), Vector3.Scale(baseValue, middleFactor), Vector3.Scale(baseValue, endFactor));
+        }
+
+        private static void RotationCurve(AnimationClip clip, Transform root, Transform target, Vector3 startDelta, Vector3 middleDelta, Vector3 endDelta)
+        {
+            var path = AnimationUtility.CalculateTransformPath(target, root);
+            var baseRotation = target.localRotation;
+            var start = baseRotation * Quaternion.Euler(startDelta);
+            var middle = baseRotation * Quaternion.Euler(middleDelta);
+            var end = baseRotation * Quaternion.Euler(endDelta);
+            SetCurve(clip, path, "m_LocalRotation.x", start.x, middle.x, end.x);
+            SetCurve(clip, path, "m_LocalRotation.y", start.y, middle.y, end.y);
+            SetCurve(clip, path, "m_LocalRotation.z", start.z, middle.z, end.z);
+            SetCurve(clip, path, "m_LocalRotation.w", start.w, middle.w, end.w);
+        }
+
+        private static void SetVectorCurve(AnimationClip clip, string path, string prefix, Vector3 start, Vector3 middle, Vector3 end)
+        {
+            SetCurve(clip, path, prefix + ".x", start.x, middle.x, end.x);
+            SetCurve(clip, path, prefix + ".y", start.y, middle.y, end.y);
+            SetCurve(clip, path, prefix + ".z", start.z, middle.z, end.z);
         }
 
         private static void SetCurve(AnimationClip clip, string path, string property, float start, float middle, float end)
         {
-            var curve = new AnimationCurve(
-                new Keyframe(0f, start),
-                new Keyframe(0.5f, middle),
-                new Keyframe(1f, end));
+            var curve = new AnimationCurve(new Keyframe(0f, start), new Keyframe(0.5f, middle), new Keyframe(1f, end));
             AnimationUtility.SetEditorCurve(clip, EditorCurveBinding.FloatCurve(path, typeof(Transform), property), curve);
         }
 
@@ -215,66 +342,44 @@ namespace YourCat.DesktopPet.Editor
             transition.duration = 0.12f;
         }
 
+        private static void NormalizeModel(GameObject model, float targetHeight)
+        {
+            var bounds = CalculateBounds(model);
+            var sourceUsesZAsUp = bounds.size.z > bounds.size.y;
+            var sourceHeight = sourceUsesZAsUp ? bounds.size.z : bounds.size.y;
+            var scale = targetHeight / sourceHeight;
+            model.transform.localScale *= scale;
+            model.transform.localPosition = Vector3.zero;
+            model.transform.localRotation = Quaternion.identity;
+        }
+
+        private static Bounds CalculateBounds(GameObject target)
+        {
+            var renderers = target.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0)
+                throw new System.InvalidOperationException("Cat model contains no renderers.");
+
+            var bounds = renderers[0].bounds;
+            for (var index = 1; index < renderers.Length; index++)
+                bounds.Encapsulate(renderers[index].bounds);
+            return bounds;
+        }
+
+        private static Transform Find(Transform root, string name)
+        {
+            foreach (var transform in root.GetComponentsInChildren<Transform>(true))
+            {
+                if (transform.name == name)
+                    return transform;
+            }
+
+            throw new System.InvalidOperationException($"Cat bone not found: {name}");
+        }
+
         private static void DeleteAssetIfPresent(string path)
         {
             if (AssetDatabase.LoadAssetAtPath<Object>(path) != null)
                 AssetDatabase.DeleteAsset(path);
-        }
-
-        private static void Ear(Transform parent, string name, Vector3 position, Material material)
-        {
-            var ear = Part(parent, name, PrimitiveType.Sphere, position, new Vector3(0.24f, 0.48f, 0.18f), material);
-            ear.transform.localRotation = Quaternion.Euler(0f, 0f, -10f);
-        }
-
-        private static void Eye(Transform parent, string name, Vector3 position, Material iris, Material pupil)
-        {
-            Part(parent, name, PrimitiveType.Sphere, position, new Vector3(0.10f, 0.15f, 0.13f), iris);
-            Part(parent, name + "Pupil", PrimitiveType.Sphere, position + new Vector3(0.085f, 0f, 0f), new Vector3(0.035f, 0.09f, 0.055f), pupil);
-        }
-
-        private static void Leg(Transform parent, string name, Vector3 position, Material material)
-        {
-            var leg = Part(parent, name, PrimitiveType.Capsule, position, new Vector3(0.25f, 0.42f, 0.25f), material);
-            Part(leg.transform, "Paw", PrimitiveType.Sphere, new Vector3(0.10f, -0.48f, 0f), new Vector3(0.32f, 0.20f, 0.28f), material);
-        }
-
-        private static void Tail(Transform parent, Material material)
-        {
-            var pivot = new GameObject("Tail").transform;
-            pivot.SetParent(parent, false);
-            pivot.localPosition = new Vector3(-0.70f, 1.00f, 0f);
-            for (var index = 0; index < 5; index++)
-            {
-                var segment = Part(pivot, $"TailSegment{index + 1}", PrimitiveType.Capsule,
-                    new Vector3(-0.12f * index, 0.18f * index, 0f), new Vector3(0.16f, 0.31f, 0.16f), material);
-                segment.transform.localRotation = Quaternion.Euler(0f, 0f, -42f);
-            }
-        }
-
-        private static GameObject Part(Transform parent, string name, PrimitiveType primitive, Vector3 position, Vector3 scale, Material material)
-        {
-            var part = GameObject.CreatePrimitive(primitive);
-            part.name = name;
-            part.transform.SetParent(parent, false);
-            part.transform.localPosition = position;
-            part.transform.localScale = scale;
-            Object.DestroyImmediate(part.GetComponent<Collider>());
-            part.GetComponent<Renderer>().sharedMaterial = material;
-            return part;
-        }
-
-        private static Material CreateMaterial(string name, Color color)
-        {
-            var path = $"{OutputDirectory}/{name}.mat";
-            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (material != null)
-                return material;
-
-            var shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
-            material = new Material(shader) { name = name, color = color };
-            AssetDatabase.CreateAsset(material, path);
-            return material;
         }
     }
 }

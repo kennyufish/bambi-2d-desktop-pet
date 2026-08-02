@@ -36,6 +36,7 @@ namespace YourCat.DesktopPet
         private IntPtr originalWindowProcedure;
         private WindowProcedure windowProcedure;
         private NotifyIconData iconData;
+        private bool trayIconAdded;
 #endif
         private int pendingCommand;
         private bool paused;
@@ -43,6 +44,12 @@ namespace YourCat.DesktopPet
         private void Start()
         {
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+            foreach (var argument in Environment.GetCommandLineArgs())
+            {
+                if (argument == "--self-test")
+                    return;
+            }
+
             window = FindWindow(null, Application.productName);
             if (window == IntPtr.Zero)
                 return;
@@ -59,7 +66,8 @@ namespace YourCat.DesktopPet
                 icon = LoadIcon(IntPtr.Zero, new IntPtr(32512)),
                 tip = "Your Cat Desktop Pet"
             };
-            ShellNotifyIcon(NimAdd, ref iconData);
+            trayIconAdded = ShellNotifyIcon(NimAdd, ref iconData);
+            Debug.Log($"TRAY_ICON_ADDED={trayIconAdded}");
             DesktopWindowController.BeforeQuit += RemoveTrayIcon;
 #endif
         }
@@ -71,6 +79,11 @@ namespace YourCat.DesktopPet
 
             var command = pendingCommand;
             pendingCommand = 0;
+            ExecuteCommand(command);
+        }
+
+        private void ExecuteCommand(int command)
+        {
             switch (command)
             {
                 case CmdSettings:
@@ -82,19 +95,34 @@ namespace YourCat.DesktopPet
                     animator.speed = paused ? 0f : 1f;
                     break;
                 case CmdScale75:
-                    cat.localScale = Vector3.one * 0.75f;
+                    cat.localScale = Vector3.one * (0.75f * DesktopSettingsController.DisplayScale);
                     break;
                 case CmdScale100:
-                    cat.localScale = Vector3.one;
+                    cat.localScale = Vector3.one * DesktopSettingsController.DisplayScale;
                     break;
                 case CmdScale125:
-                    cat.localScale = Vector3.one * 1.25f;
+                    cat.localScale = Vector3.one * (1.25f * DesktopSettingsController.DisplayScale);
                     break;
                 case CmdExit:
                     desktopWindow.QuitApplication();
                     break;
             }
         }
+
+        internal bool PausedForTest => paused;
+        internal void TogglePauseForTest() => ExecuteCommand(CmdPause);
+        internal void SetScaleForTest(int percent)
+        {
+            ExecuteCommand(percent switch
+            {
+                75 => CmdScale75,
+                100 => CmdScale100,
+                125 => CmdScale125,
+                _ => throw new ArgumentOutOfRangeException(nameof(percent))
+            });
+        }
+
+        internal void ToggleSettingsForTest() => ExecuteCommand(CmdSettings);
 
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
         private IntPtr HandleWindowMessage(IntPtr hwnd, uint message, IntPtr wParam, IntPtr lParam)
@@ -127,7 +155,7 @@ namespace YourCat.DesktopPet
         private void RemoveTrayIcon()
         {
             DesktopWindowController.BeforeQuit -= RemoveTrayIcon;
-            if (iconData.size != 0)
+            if (trayIconAdded)
                 ShellNotifyIcon(NimDelete, ref iconData);
             if (window != IntPtr.Zero && originalWindowProcedure != IntPtr.Zero)
                 SetWindowLongPtr(window, GwlpWndProc, originalWindowProcedure);
@@ -158,7 +186,7 @@ namespace YourCat.DesktopPet
         [StructLayout(LayoutKind.Sequential)]
         private struct Point { public int x; public int y; }
 
-        [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+        [DllImport("shell32.dll", EntryPoint = "Shell_NotifyIconW", CharSet = CharSet.Unicode)]
         private static extern bool ShellNotifyIcon(uint message, ref NotifyIconData data);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern IntPtr FindWindow(string className, string windowName);

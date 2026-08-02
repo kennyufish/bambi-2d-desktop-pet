@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; style-src 'self'; script-src 'self'" />
+    <title>你家猫桌宠设置</title>
+    <link rel="stylesheet" href="settings.css" />
+  </head>
+  <body>
+    <form id="settings-form">
+      <h1>桌宠设置</h1>
+      <label>整体尺寸 <output id="scale-output"></output><input id="scale" type="range" min="0.65" max="1.35" step="0.05" /></label>
+      <label>移动速度 <output id="speed-output"></output><input id="speed" type="range" min="0.2" max="1.2" step="0.05" /></label>
+      <label class="toggle"><input id="startup" type="checkbox" /> 登录 Windows 后自动启动</label>
+      <p>抚摸：在猫身上按右键<br />喂食：Shift + 右键<br />拖动：按住左键</p>
+      <div class="actions"><button type="button" id="cancel">关闭</button><button type="submit">保存</button></div>
+    </form>
+    <script type="module" src="settings.js"></script>
+  </body>
+</html>

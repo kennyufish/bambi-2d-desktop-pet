@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "id": "tabby-reference-v1",
+  "displayName": "Reference Tabby",
+  "canvas": {
+    "width": 520,
+    "height": 390,
+    "anchorX": 0.5,
+    "anchorY": 1.0,
+    "displayScale": 0.5
+  },
+  "actions": {
+    "idle": {
+      "frames": [
+        "frames/idle-0.png"
+      ],
+      "frameMs": 500,
+      "loop": true
+    },
+    "walk": {
+      "frames": [
+        "frames/walk-0.png",
+        "frames/walk-1.png",
+        "frames/walk-2.png",
+        "frames/walk-3.png"
+      ],
+      "frameMs": 145,
+      "loop": true
+    },
+    "sit": {
+      "frames": [
+        "frames/sit-0.png",
+        "frames/sit-1.png",
+        "frames/sit-2.png",
+        "frames/sit-3.png"
+      ],
+      "frameMs": 220,
+      "loop": false
+    },
+    "lieDown": {
+      "frames": [
+        "frames/lieDown-0.png",
+        "frames/lieDown-1.png",
+        "frames/lieDown-2.png",
+        "frames/lieDown-3.png"
+      ],
+      "frameMs": 260,
+      "loop": false
+    },
+    "sleep": {
+      "frames": [
+        "frames/sleep-0.png",
+        "frames/sleep-1.png",
+        "frames/sleep-2.png",
+        "frames/sleep-3.png"
+      ],
+      "frameMs": 320,
+      "loop": false
+    },
+    "pet": {
+      "frames": [
+        "frames/pet-0.png",
+        "frames/pet-1.png",
+        "frames/pet-2.png",
+        "frames/pet-3.png"
+      ],
+      "frameMs": 190,
+      "loop": false
+    },
+    "eat": {
+      "frames": [
+        "frames/eat-0.png",
+        "frames/eat-1.png",
+        "frames/eat-2.png",
+        "frames/eat-3.png"
+      ],
+      "frameMs": 220,
+      "loop": false,
+      "props": [
+        "bowl"
+      ]
+    }
+  }
+}

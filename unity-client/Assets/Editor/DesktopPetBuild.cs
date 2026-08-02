@@ -12,7 +12,7 @@ namespace YourCat.DesktopPet.Editor
     {
         private const string ScenePath = "Assets/DesktopPet.unity";
         private const string PrefabPath = "Assets/StandardCat/StandardCat.prefab";
-        private const string BuildPath = "Build/DesktopPetV13/YourCatDesktopPet.exe";
+        private const string BuildPath = "Build/DesktopPetV21/YourCatDesktopPet.exe";
 
         [MenuItem("Your Cat/Build Windows Desktop Pet")]
         public static void BuildWindows()
@@ -62,6 +62,7 @@ namespace YourCat.DesktopPet.Editor
             var selfTestObject = new SerializedObject(selfTest);
             selfTestObject.FindProperty("behaviour").objectReferenceValue = behaviour;
             selfTestObject.FindProperty("animator").objectReferenceValue = animator;
+            selfTestObject.FindProperty("morph").objectReferenceValue = cat.GetComponent<CatMorphController>();
             selfTestObject.ApplyModifiedPropertiesWithoutUndo();
 
             var cameraObject = new GameObject("DesktopCamera");
@@ -94,6 +95,10 @@ namespace YourCat.DesktopPet.Editor
             trayObject.FindProperty("desktopWindow").objectReferenceValue = window;
             trayObject.FindProperty("settings").objectReferenceValue = settings;
             trayObject.ApplyModifiedPropertiesWithoutUndo();
+
+            selfTestObject.FindProperty("settings").objectReferenceValue = settings;
+            selfTestObject.FindProperty("tray").objectReferenceValue = tray;
+            selfTestObject.ApplyModifiedPropertiesWithoutUndo();
 
             var lightObject = new GameObject("KeyLight");
             var light = lightObject.AddComponent<Light>();

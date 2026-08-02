@@ -1,0 +1,12 @@
+:root { color-scheme: dark; font-family: "Segoe UI", system-ui, sans-serif; background: #171914; color: #f3f0e6; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; padding: 20px; overflow: hidden; }
+form { min-height: calc(100vh - 40px); display: grid; gap: 16px; align-content: start; }
+h1 { margin: 0 0 4px; font-size: 24px; }
+label { display: grid; grid-template-columns: 1fr auto; gap: 8px; font-size: 14px; }
+input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: #be9664; }
+.toggle { display: flex; align-items: center; gap: 9px; }
+p { margin: 0; color: #bcb7a9; font-size: 13px; line-height: 1.7; }
+.actions { position: sticky; bottom: 0; display: flex; justify-content: flex-end; gap: 10px; margin-top: auto; padding-top: 12px; background: #171914; }
+button { border: 1px solid #676254; border-radius: 8px; padding: 8px 18px; background: #2b2e26; color: inherit; }
+button[type="submit"] { background: #92704b; border-color: #b78c5e; }

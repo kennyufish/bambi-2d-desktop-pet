@@ -1,0 +1,40 @@
+{
+  "name": "your-cat-desktop-pet-2d",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Transparent Electron desktop pet driven by replaceable 2D sprite packs",
+  "type": "module",
+  "main": "main.mjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "python ../tools/validate_sprite_pack.py sprite-packs/orange-tabby && node --test tests/*.test.mjs",
+    "pack:dir": "electron-builder --dir --win",
+    "pack:cache": "powershell -ExecutionPolicy Bypass -File tools/package-from-cache.ps1"
+  },
+  "devDependencies": {
+    "electron": "40.10.2",
+    "electron-builder": "26.0.12"
+  },
+  "build": {
+    "appId": "com.yourcat.desktop-pet",
+    "productName": "YourCatDesktopPet",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.mjs",
+      "preload.cjs",
+      "src/**/*",
+      "renderer/**/*",
+      "sprite-packs/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "dir"
+      ],
+      "artifactName": "YourCatDesktopPet-${version}.${ext}"
+    },
+    "asar": true
+  }
+}

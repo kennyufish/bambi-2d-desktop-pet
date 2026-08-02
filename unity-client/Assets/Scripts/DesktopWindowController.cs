@@ -23,10 +23,15 @@ namespace YourCat.DesktopPet
         private IntPtr originalExtendedStyle;
         private bool clickThrough;
         private bool initialized;
+        private float nextPointerLog;
 
         private void Start()
         {
             Application.runInBackground = true;
+            if (HasArgument("--self-test"))
+                desktopCamera.backgroundColor = new Color(0.06f, 0.08f, 0.12f, 1f);
+            if (HasArgument("--open-settings"))
+                settings.Toggle();
         }
 
         private void Update()
@@ -35,6 +40,9 @@ namespace YourCat.DesktopPet
                 QuitApplication();
 
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+            if (HasArgument("--self-test"))
+                return;
+
             if (!initialized)
             {
                 TryInitializeWindow();
@@ -57,9 +65,9 @@ namespace YourCat.DesktopPet
             BeforeQuit?.Invoke();
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
             RestoreWindow();
-            System.Environment.Exit(0);
+            ExitProcess(0);
 #else
-            Application.Quit();
+            Application.Quit(0);
 #endif
         }
 
@@ -108,11 +116,35 @@ namespace YourCat.DesktopPet
             if (!ScreenToClient(window, ref cursor))
                 return false;
 
-            var dpiScale = GetDpiForWindow(window) / 96f;
-            var point = new Vector3(cursor.x * dpiScale, Screen.height - cursor.y * dpiScale, 0f);
-            if (settings != null && settings.IsScreenPointInside(point))
+            var point = new Vector3(
+                cursor.x,
+                Screen.height - cursor.y,
+                0f);
+            var insideSettings = settings != null && settings.IsScreenPointInside(point);
+            var hitPet = Physics.Raycast(desktopCamera.ScreenPointToRay(point), 100f);
+            if (HasArgument("--pointer-debug") && Time.unscaledTime >= nextPointerLog)
+            {
+                nextPointerLog = Time.unscaledTime + 1f;
+                Debug.Log(
+                    $"POINTER client={cursor.x},{cursor.y} screen={Screen.width}x{Screen.height} " +
+                    $"point={point.x:0},{point.y:0} " +
+                    $"settings={insideSettings} pet={hitPet}");
+            }
+
+            if (insideSettings)
                 return true;
-            return Physics.Raycast(desktopCamera.ScreenPointToRay(point), 100f);
+            return hitPet;
+        }
+
+        private static bool HasArgument(string expected)
+        {
+            foreach (var argument in Environment.GetCommandLineArgs())
+            {
+                if (argument == expected)
+                    return true;
+            }
+
+            return false;
         }
 
 #if UNITY_STANDALONE_WIN
@@ -153,11 +185,11 @@ namespace YourCat.DesktopPet
         [DllImport("user32.dll")]
         private static extern bool ScreenToClient(IntPtr hWnd, ref Point point);
 
-        [DllImport("user32.dll")]
-        private static extern uint GetDpiForWindow(IntPtr hWnd);
-
         [DllImport("dwmapi.dll")]
         private static extern int DwmExtendFrameIntoClientArea(IntPtr hWnd, ref Margins margins);
+
+        [DllImport("kernel32.dll")]
+        private static extern void ExitProcess(uint exitCode);
 #endif
     }
 }

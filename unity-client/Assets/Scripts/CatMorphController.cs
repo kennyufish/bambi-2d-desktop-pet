@@ -4,24 +4,21 @@ namespace YourCat.DesktopPet
 {
     public sealed class CatMorphController : MonoBehaviour
     {
-        [SerializeField] private Transform torso;
+        [SerializeField] private Transform body;
         [SerializeField] private Transform head;
-        [SerializeField] private Transform leftEar;
-        [SerializeField] private Transform rightEar;
+        [SerializeField] private Transform neck;
         [SerializeField] private Transform[] legs;
 
-        private Vector3 torsoBaseScale;
+        private Vector3 bodyBaseScale;
         private Vector3 headBaseScale;
-        private Vector3 leftEarBaseScale;
-        private Vector3 rightEarBaseScale;
+        private Vector3 neckBaseScale;
         private Vector3[] legBaseScales;
 
         private void Awake()
         {
-            torsoBaseScale = torso.localScale;
+            bodyBaseScale = body.localScale;
             headBaseScale = head.localScale;
-            leftEarBaseScale = leftEar.localScale;
-            rightEarBaseScale = rightEar.localScale;
+            neckBaseScale = neck.localScale;
             legBaseScales = new Vector3[legs.Length];
 
             for (var index = 0; index < legs.Length; index++)
@@ -30,21 +27,19 @@ namespace YourCat.DesktopPet
 
         public void Apply(CatShape shape)
         {
-            torso.localScale = Vector3.Scale(
-                torsoBaseScale,
+            body.localScale = Vector3.Scale(
+                bodyBaseScale,
                 new Vector3(
                     Mathf.Lerp(0.85f, 1.2f, shape.weight),
-                    Mathf.Lerp(0.9f, 1.12f, shape.weight),
-                    Mathf.Lerp(0.85f, 1.2f, shape.weight)
+                    Mathf.Lerp(0.94f, 1.08f, shape.weight),
+                    Mathf.Lerp(0.9f, 1.14f, shape.weight)
                 )
             );
 
             var faceScale = Mathf.Lerp(0.85f, 1.15f, shape.faceWidth);
-            head.localScale = Vector3.Scale(headBaseScale, new Vector3(faceScale, 1f, faceScale));
-
             var earScale = Mathf.Lerp(0.8f, 1.2f, shape.earSize);
-            leftEar.localScale = leftEarBaseScale * earScale;
-            rightEar.localScale = rightEarBaseScale * earScale;
+            head.localScale = Vector3.Scale(headBaseScale, new Vector3(faceScale, earScale, faceScale));
+            neck.localScale = Vector3.Scale(neckBaseScale, new Vector3(1f, Mathf.Lerp(0.94f, 1.06f, shape.earSize), 1f));
 
             var legScale = Mathf.Lerp(0.78f, 1.2f, shape.legLength);
             for (var index = 0; index < legs.Length; index++)
@@ -53,6 +48,11 @@ namespace YourCat.DesktopPet
                 scale.y *= legScale;
                 legs[index].localScale = scale;
             }
+        }
+
+        public Vector4 GetVisualSignature()
+        {
+            return new Vector4(body.localScale.x, head.localScale.x, head.localScale.y, legs[0].localScale.y);
         }
     }
 }

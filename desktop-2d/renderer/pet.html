@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; img-src 'self' file: data:; style-src 'self'; script-src 'self'" />
+    <title>Your Cat Desktop Pet</title>
+    <link rel="stylesheet" href="pet.css" />
+  </head>
+  <body>
+    <main id="stage" aria-label="透明桌宠区域">
+      <div id="pet" data-action="idle">
+        <div id="shadow"></div>
+        <div id="tilt">
+          <img id="frame-a" class="frame visible" draggable="false" alt="" />
+          <img id="frame-b" class="frame" draggable="false" alt="" />
+        </div>
+      </div>
+    </main>
+    <script type="module" src="pet.js"></script>
+  </body>
+</html>

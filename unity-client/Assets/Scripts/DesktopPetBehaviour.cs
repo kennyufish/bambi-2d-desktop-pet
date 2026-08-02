@@ -24,6 +24,8 @@ namespace YourCat.DesktopPet
         private float actionTimer;
         private bool dragging;
         private Vector3 dragOffset;
+        private bool useTestMousePosition;
+        private Vector3 testMousePosition;
 
         private void Awake()
         {
@@ -37,7 +39,7 @@ namespace YourCat.DesktopPet
             if (dragging)
             {
                 animator.SetFloat(Speed, 0f);
-                transform.position = MouseWorldPosition() + dragOffset;
+                transform.position = CurrentMouseWorldPosition() + dragOffset;
                 return;
             }
 
@@ -70,14 +72,12 @@ namespace YourCat.DesktopPet
 
         private void OnMouseDown()
         {
-            dragging = true;
-            actionTimer = 0f;
-            dragOffset = transform.position - MouseWorldPosition();
+            BeginDrag(MouseWorldPosition());
         }
 
         private void OnMouseUp()
         {
-            dragging = false;
+            EndDrag();
         }
 
         private void OnMouseOver()
@@ -97,12 +97,43 @@ namespace YourCat.DesktopPet
         public void Feed() => TriggerAction(Eat, 1f);
         public void Pet() => TriggerAction(Petted, 1f);
         public void SetWalkSpeed(float value) => walkSpeed = Mathf.Clamp(value, 0.2f, 1.2f);
+        internal float WalkSpeedForTest => walkSpeed;
+
+        internal void BeginDragForTest(Vector3 mouseWorldPosition)
+        {
+            useTestMousePosition = true;
+            testMousePosition = mouseWorldPosition;
+            BeginDrag(mouseWorldPosition);
+        }
+
+        internal void MoveDragForTest(Vector3 mouseWorldPosition)
+        {
+            testMousePosition = mouseWorldPosition;
+        }
+
+        internal void EndDragForTest()
+        {
+            EndDrag();
+            useTestMousePosition = false;
+        }
 
         private void TriggerAction(int trigger, float seconds)
         {
             animator.SetFloat(Speed, 0f);
             animator.SetTrigger(trigger);
             actionTimer = seconds;
+        }
+
+        private void BeginDrag(Vector3 mouseWorldPosition)
+        {
+            dragging = true;
+            actionTimer = 0f;
+            dragOffset = transform.position - mouseWorldPosition;
+        }
+
+        private void EndDrag()
+        {
+            dragging = false;
         }
 
         private void ChooseIdleAction()
@@ -145,6 +176,11 @@ namespace YourCat.DesktopPet
             var mouse = Input.mousePosition;
             mouse.z = Mathf.Abs(mainCamera.transform.position.z - transform.position.z);
             return mainCamera.ScreenToWorldPoint(mouse);
+        }
+
+        private Vector3 CurrentMouseWorldPosition()
+        {
+            return useTestMousePosition ? testMousePosition : MouseWorldPosition();
         }
     }
 }

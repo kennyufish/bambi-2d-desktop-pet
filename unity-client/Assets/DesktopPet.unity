@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &98880686
+--- !u!1 &711421497
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,11 +127,11 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 98880691}
-  - component: {fileID: 98880690}
-  - component: {fileID: 98880689}
-  - component: {fileID: 98880688}
-  - component: {fileID: 98880687}
+  - component: {fileID: 711421502}
+  - component: {fileID: 711421501}
+  - component: {fileID: 711421500}
+  - component: {fileID: 711421499}
+  - component: {fileID: 711421498}
   m_Layer: 0
   m_Name: DesktopCamera
   m_TagString: MainCamera
@@ -139,59 +139,59 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &98880687
+--- !u!114 &711421498
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 98880686}
+  m_GameObject: {fileID: 711421497}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 95d3b680d9f8fee47a1022433a23e819, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YourCat.DesktopPet.DesktopTrayController
-  behaviour: {fileID: 406192867}
-  animator: {fileID: 406192863}
-  cat: {fileID: 406192862}
-  desktopWindow: {fileID: 98880689}
-  settings: {fileID: 98880688}
---- !u!114 &98880688
+  behaviour: {fileID: 1353851465}
+  animator: {fileID: 1353851462}
+  cat: {fileID: 1353851460}
+  desktopWindow: {fileID: 711421500}
+  settings: {fileID: 711421499}
+--- !u!114 &711421499
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 98880686}
+  m_GameObject: {fileID: 711421497}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3325150619c177241b44ba916b4a5de9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YourCat.DesktopPet.DesktopSettingsController
-  morph: {fileID: 406192864}
-  behaviour: {fileID: 406192867}
-  cat: {fileID: 406192862}
---- !u!114 &98880689
+  morph: {fileID: 1353851461}
+  behaviour: {fileID: 1353851465}
+  cat: {fileID: 1353851460}
+--- !u!114 &711421500
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 98880686}
+  m_GameObject: {fileID: 711421497}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8cf02a7a1241f0247aee999ce0519cea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YourCat.DesktopPet.DesktopWindowController
-  desktopCamera: {fileID: 98880690}
-  settings: {fileID: 98880688}
---- !u!20 &98880690
+  desktopCamera: {fileID: 711421501}
+  settings: {fileID: 711421499}
+--- !u!20 &711421501
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 98880686}
+  m_GameObject: {fileID: 711421497}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
@@ -236,13 +236,13 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!4 &98880691
+--- !u!4 &711421502
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 98880686}
+  m_GameObject: {fileID: 711421497}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
@@ -251,127 +251,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &406192861
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -2.15
-      objectReference: {fileID: 0}
-    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4821651329173581959, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      propertyPath: m_Name
-      value: DesktopCat
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4821651329173581959, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 406192867}
-    - targetCorrespondingSourceObject: {fileID: 4821651329173581959, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 406192866}
-  m_SourcePrefab: {fileID: 100100000, guid: a7976654634b7144f827ad10d143b94b, type: 3}
---- !u!4 &406192862 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-  m_PrefabInstance: {fileID: 406192861}
-  m_PrefabAsset: {fileID: 0}
---- !u!95 &406192863 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 3910107128310159643, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-  m_PrefabInstance: {fileID: 406192861}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &406192864 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 644362266535505189, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-  m_PrefabInstance: {fileID: 406192861}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 406192865}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e02822eddb19be244a09f67cec484f84, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::YourCat.DesktopPet.CatMorphController
---- !u!1 &406192865 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4821651329173581959, guid: a7976654634b7144f827ad10d143b94b, type: 3}
-  m_PrefabInstance: {fileID: 406192861}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &406192866
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 406192865}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d14d8a2a7326097488abfb276c609038, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::YourCat.DesktopPet.DesktopPetSelfTest
-  behaviour: {fileID: 406192867}
-  animator: {fileID: 406192863}
---- !u!114 &406192867
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 406192865}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1611e5051b547b34cbcaca6915f176c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::YourCat.DesktopPet.DesktopPetBehaviour
-  animator: {fileID: 406192863}
-  walkSpeed: 0.65
-  directionChangeSeconds: 5
-  idleDecisionSeconds: 8
-  viewportPadding: 0.08
---- !u!1 &1052444535
+--- !u!1 &1001283659
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -379,8 +259,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1052444537}
-  - component: {fileID: 1052444536}
+  - component: {fileID: 1001283661}
+  - component: {fileID: 1001283660}
   m_Layer: 0
   m_Name: KeyLight
   m_TagString: Untagged
@@ -388,13 +268,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!108 &1052444536
+--- !u!108 &1001283660
 Light:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1052444535}
+  m_GameObject: {fileID: 1001283659}
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 1
@@ -453,13 +333,13 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
---- !u!4 &1052444537
+--- !u!4 &1001283661
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1052444535}
+  m_GameObject: {fileID: 1001283659}
   serializedVersion: 2
   m_LocalRotation: {x: 0.28678823, y: -0.28678823, z: 0.09042398, w: 0.90957606}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -468,10 +348,133 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1353851459
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -2.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4821651329173581959, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      propertyPath: m_Name
+      value: DesktopCat
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4821651329173581959, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1353851465}
+    - targetCorrespondingSourceObject: {fileID: 4821651329173581959, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1353851464}
+  m_SourcePrefab: {fileID: 100100000, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+--- !u!4 &1353851460 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1553611465564469296, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+  m_PrefabInstance: {fileID: 1353851459}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1353851461 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 644362266535505189, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+  m_PrefabInstance: {fileID: 1353851459}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1353851463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e02822eddb19be244a09f67cec484f84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YourCat.DesktopPet.CatMorphController
+--- !u!95 &1353851462 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 3910107128310159643, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+  m_PrefabInstance: {fileID: 1353851459}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1353851463 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4821651329173581959, guid: a7976654634b7144f827ad10d143b94b, type: 3}
+  m_PrefabInstance: {fileID: 1353851459}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1353851464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1353851463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d14d8a2a7326097488abfb276c609038, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YourCat.DesktopPet.DesktopPetSelfTest
+  behaviour: {fileID: 1353851465}
+  animator: {fileID: 1353851462}
+  morph: {fileID: 1353851461}
+  settings: {fileID: 711421499}
+  tray: {fileID: 711421498}
+--- !u!114 &1353851465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1353851463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1611e5051b547b34cbcaca6915f176c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YourCat.DesktopPet.DesktopPetBehaviour
+  animator: {fileID: 1353851462}
+  walkSpeed: 0.65
+  directionChangeSeconds: 5
+  idleDecisionSeconds: 8
+  viewportPadding: 0.08
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 406192861}
-  - {fileID: 98880691}
-  - {fileID: 1052444537}
+  - {fileID: 1353851459}
+  - {fileID: 711421502}
+  - {fileID: 1001283661}

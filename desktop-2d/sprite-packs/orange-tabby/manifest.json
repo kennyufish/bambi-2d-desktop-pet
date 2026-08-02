@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 1,
+  "id": "orange-tabby-v1",
+  "displayName": "Orange Tabby",
+  "canvas": {
+    "width": 520,
+    "height": 520,
+    "anchorX": 0.5,
+    "anchorY": 1.0,
+    "displayScale": 0.5
+  },
+  "actions": {
+    "idle": {
+      "frames": [
+        "frames/idle-0.png",
+        "frames/idle-1.png",
+        "frames/idle-2.png",
+        "frames/idle-3.png",
+        "frames/idle-4.png",
+        "frames/idle-5.png",
+        "frames/idle-6.png",
+        "frames/idle-7.png"
+      ],
+      "frameMs": 125,
+      "loop": true
+    },
+    "walk": {
+      "frames": [
+        "frames/walk-0.png",
+        "frames/walk-1.png",
+        "frames/walk-2.png",
+        "frames/walk-3.png",
+        "frames/walk-4.png",
+        "frames/walk-5.png",
+        "frames/walk-6.png",
+        "frames/walk-7.png"
+      ],
+      "frameMs": 90,
+      "loop": true
+    },
+    "sit": {
+      "frames": [
+        "frames/sit-0.png",
+        "frames/sit-1.png",
+        "frames/sit-2.png",
+        "frames/sit-3.png",
+        "frames/sit-4.png",
+        "frames/sit-5.png",
+        "frames/sit-6.png",
+        "frames/sit-7.png"
+      ],
+      "frameMs": 120,
+      "loop": false
+    },
+    "lieDown": {
+      "frames": [
+        "frames/lieDown-0.png",
+        "frames/lieDown-1.png",
+        "frames/lieDown-2.png",
+        "frames/lieDown-3.png",
+        "frames/lieDown-4.png",
+        "frames/lieDown-5.png",
+        "frames/lieDown-6.png",
+        "frames/lieDown-7.png"
+      ],
+      "frameMs": 120,
+      "loop": false
+    },
+    "sleep": {
+      "frames": [
+        "frames/sleep-0.png",
+        "frames/sleep-1.png",
+        "frames/sleep-2.png",
+        "frames/sleep-3.png",
+        "frames/sleep-4.png",
+        "frames/sleep-5.png",
+        "frames/sleep-6.png",
+        "frames/sleep-7.png"
+      ],
+      "frameMs": 140,
+      "loop": false
+    },
+    "pet": {
+      "frames": [
+        "frames/pet-0.png",
+        "frames/pet-1.png",
+        "frames/pet-2.png",
+        "frames/pet-3.png",
+        "frames/pet-4.png",
+        "frames/pet-5.png",
+        "frames/pet-6.png",
+        "frames/pet-7.png"
+      ],
+      "frameMs": 100,
+      "loop": false
+    },
+    "eat": {
+      "frames": [
+        "frames/eat-0.png",
+        "frames/eat-1.png",
+        "frames/eat-2.png",
+        "frames/eat-3.png",
+        "frames/eat-4.png",
+        "frames/eat-5.png",
+        "frames/eat-6.png",
+        "frames/eat-7.png"
+      ],
+      "frameMs": 100,
+      "loop": false,
+      "props": [
+        "bowl"
+      ]
+    },
+    "pickupStart": {
+      "frames": [
+        "frames/pickupStart-0.png",
+        "frames/pickupStart-1.png",
+        "frames/pickupStart-2.png",
+        "frames/pickupStart-3.png",
+        "frames/pickupStart-4.png",
+        "frames/pickupStart-5.png",
+        "frames/pickupStart-6.png",
+        "frames/pickupStart-7.png"
+      ],
+      "frameMs": 80,
+      "loop": false,
+      "interaction": "drag",
+      "dragAnchor": {
+        "x": 320,
+        "y": 88
+      }
+    },
+    "pickedUp": {
+      "frames": [
+        "frames/pickedUp-0.png",
+        "frames/pickedUp-1.png",
+        "frames/pickedUp-2.png",
+        "frames/pickedUp-3.png",
+        "frames/pickedUp-4.png",
+        "frames/pickedUp-5.png",
+        "frames/pickedUp-6.png",
+        "frames/pickedUp-7.png"
+      ],
+      "frameMs": 100,
+      "loop": true,
+      "interaction": "drag",
+      "dragAnchor": {
+        "x": 320,
+        "y": 88
+      }
+    },
+    "landing": {
+      "frames": [
+        "frames/landing-0.png",
+        "frames/landing-1.png",
+        "frames/landing-2.png",
+        "frames/landing-3.png",
+        "frames/landing-4.png",
+        "frames/landing-5.png",
+        "frames/landing-6.png",
+        "frames/landing-7.png"
+      ],
+      "frameMs": 100,
+      "loop": false
+    },
+    "sleepBreathing": {
+      "frames": [
+        "frames/sleepBreathing-0.png",
+        "frames/sleepBreathing-1.png",
+        "frames/sleepBreathing-2.png",
+        "frames/sleepBreathing-3.png",
+        "frames/sleepBreathing-4.png",
+        "frames/sleepBreathing-5.png",
+        "frames/sleepBreathing-6.png",
+        "frames/sleepBreathing-7.png"
+      ],
+      "frameMs": 180,
+      "loop": true
+    },
+    "sitTail": {
+      "frames": [
+        "frames/sitTail-0.png",
+        "frames/sitTail-1.png",
+        "frames/sitTail-2.png",
+        "frames/sitTail-3.png",
+        "frames/sitTail-4.png",
+        "frames/sitTail-5.png",
+        "frames/sitTail-6.png",
+        "frames/sitTail-7.png"
+      ],
+      "frameMs": 140,
+      "loop": true
+    },
+    "sitReturn": {
+      "frames": [
+        "frames/sit-7.png",
+        "frames/sit-6.png",
+        "frames/sit-5.png",
+        "frames/sit-4.png",
+        "frames/sit-3.png",
+        "frames/sit-2.png",
+        "frames/sit-1.png",
+        "frames/sit-0.png"
+      ],
+      "frameMs": 120,
+      "loop": false
+    },
+    "sleepReturn": {
+      "frames": [
+        "frames/sleep-7.png",
+        "frames/sleep-6.png",
+        "frames/sleep-5.png",
+        "frames/sleep-4.png",
+        "frames/sleep-3.png",
+        "frames/sleep-2.png",
+        "frames/sleep-1.png",
+        "frames/sleep-0.png"
+      ],
+      "frameMs": 140,
+      "loop": false
+    },
+    "edgeReturn": {
+      "frames": [
+        "frames/landing-0.png",
+        "frames/landing-1.png",
+        "frames/landing-2.png",
+        "frames/landing-3.png",
+        "frames/landing-4.png",
+        "frames/landing-5.png",
+        "frames/landing-6.png",
+        "frames/landing-7.png"
+      ],
+      "frameMs": 100,
+      "loop": false
+    }
+  }
+}

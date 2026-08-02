@@ -51,3 +51,7 @@ next-env.d.ts
 /unity-client/unity-batch.log
 /unity-client/unity-build*.log
 /unity-client/Build/
+/dist/
+/desktop-2d/node_modules/
+/desktop-2d/dist/
+/desktop-2d/test-results/

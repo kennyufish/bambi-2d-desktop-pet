@@ -1,0 +1,57 @@
+:root { color-scheme: dark; }
+* { box-sizing: border-box; user-select: none; -webkit-user-drag: none; }
+html, body, #stage { width: 100%; height: 100%; margin: 0; overflow: hidden; background: transparent; }
+body { font-family: system-ui, sans-serif; }
+#pet {
+  --pet-scale: 1;
+  --facing: 1;
+  --lift: 0px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 520px;
+  height: 390px;
+  transform: translate3d(var(--x), var(--y), 0) scale(var(--pet-scale));
+  transform-origin: 0 100%;
+  will-change: transform;
+  cursor: grab;
+}
+#pet.dragging { --lift: -13px; cursor: grabbing; }
+#tilt {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 88%;
+  transform: translateY(var(--lift)) scaleX(var(--facing)) rotateY(var(--tilt-y, 0deg)) rotateZ(var(--tilt-z, 0deg));
+  animation: breathe 2.8s ease-in-out infinite;
+  will-change: transform;
+}
+.frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.08));
+}
+.frame.visible { opacity: 1; }
+#shadow {
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  bottom: 4%;
+  height: 8%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0,0,0,.26), rgba(0,0,0,0) 72%);
+  transform: scaleY(.55) scaleX(var(--shadow-scale, 1));
+  opacity: var(--shadow-opacity, .7);
+  filter: blur(5px);
+}
+#pet.dragging #shadow { --shadow-scale: .8; --shadow-opacity: .4; }
+#pet.paused #tilt { animation-play-state: paused; }
+@keyframes breathe {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -3px; }
+}

@@ -6,6 +6,7 @@ namespace YourCat.DesktopPet
 {
     public sealed class DesktopSettingsController : MonoBehaviour
     {
+        internal const float DisplayScale = 0.5f;
         private const string StartupName = "YourCatDesktopPet";
         private static readonly string StartupKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
@@ -43,7 +44,33 @@ namespace YourCat.DesktopPet
                 return false;
 
             var guiPoint = new Vector2(screenPoint.x, Screen.height - screenPoint.y);
-            return panelRect.Contains(guiPoint);
+            var pointerArea = new Rect(
+                panelRect.x - 24f,
+                panelRect.y - 24f,
+                panelRect.width + 48f,
+                panelRect.height + 48f);
+            return pointerArea.Contains(guiPoint);
+        }
+
+        internal bool VisibleForTest => visible;
+        internal bool StartupEnabledForTest => IsStartupEnabled();
+
+        internal void ApplyAndSaveForTest(CatShape testShape, float testScale, float testSpeed)
+        {
+            shape.weight = testShape.weight;
+            shape.faceWidth = testShape.faceWidth;
+            shape.earSize = testShape.earSize;
+            shape.legLength = testShape.legLength;
+            scale = testScale;
+            speed = testSpeed;
+            Apply();
+            Save();
+        }
+
+        internal void SetStartupForTest(bool enabled)
+        {
+            SetStartupEnabled(enabled);
+            startupEnabled = enabled;
         }
 
         private void OnGUI()
@@ -94,7 +121,7 @@ namespace YourCat.DesktopPet
         private void Apply()
         {
             morph.Apply(shape);
-            cat.localScale = Vector3.one * scale;
+            cat.localScale = Vector3.one * (scale * DisplayScale);
             behaviour.SetWalkSpeed(speed);
         }
 

@@ -1,0 +1,30 @@
+Use case: stylized-concept
+Asset type: transparent-ready production animation sprite sheet for a realistic 3D desktop-pet cat
+
+Input images:
+- Image 1 is the exact starting pose and identity reference: the final suspended frame after being held.
+- Image 2 is the exact ending pose and identity reference: the first right-facing walking step.
+
+Preserve this exact same cat across every frame: identical model-space size, orange/cinnamon classic-tabby marbled coat and swirl locations, pale muzzle/chin/belly/inner legs, yellow-green eyes, pink-brown nose, tall ears, face shape, body proportions, paws, and long tail.
+
+Create exactly 8 chronological transition frames in one strict 4 columns x 2 rows sprite sheet, read left-to-right across the top row and then left-to-right across the bottom row.
+
+Required frame sequence:
+1. Suspended release pose matching Image 1, body vertical, paws dangling, no hand visible.
+2. Vertical downward fall, body still mostly upright, ears and tail responding naturally.
+3. Legs tuck underneath in preparation for landing; body rotates smoothly toward a horizontal right-facing orientation.
+4. Both front paws make first contact at an invisible common baseline; hindquarters are still descending.
+5. Hind paws land and all legs compress to absorb impact.
+6. Body reaches the lowest crouch with shoulders and hips compressed; tail counterbalances.
+7. Cat recovers to a normal right-facing standing posture.
+8. Cat initiates the first rightward walking step, matching Image 2 and connecting seamlessly to the walk cycle.
+
+View and consistency: same right-facing side or very slight three-quarter profile throughout; identical orthographic camera, focal length, character scale, horizontal center reference, lighting, and framing. Anatomy and proportions must never stretch or shrink. Keep the complete cat, ears, every paw, and full tail visible with generous padding. Preserve the same face and fur markings in all eight cells.
+
+Motion: physically believable gravity, feline landing mechanics, and continuous motion arcs. Cute calm expression; no pain or distress; correct limb count and joint bending.
+
+Style: highly realistic polished 3D render, physically based short fur, individual fur strands, realistic glossy eyes, consistent neutral lighting.
+
+Background: every background pixel and every gutter must be one perfectly flat uniform solid #00ff00 chroma-key color. No floor plane, ground line, contact shadow, cast shadow, reflection, gradient, texture, or white separator lines. Do not use #00ff00 inside the cat.
+
+Constraints: exactly 8 frames and exactly one cat per frame; no human hand, arm, person, harness, collar, ground, props, text, numbers, labels, arrows, symbols, extra cats, duplicated or missing limbs or tails, cropping, border, or watermark.
