@@ -9,6 +9,7 @@
     "start": "electron .",
     "test": "python ../tools/validate_sprite_pack.py sprite-packs/orange-tabby && node --test tests/*.test.mjs",
     "pack:dir": "electron-builder --dir --win",
+    "pack:portable": "pwsh -NoProfile -ExecutionPolicy Bypass -File tools/build-portable.ps1",
     "pack:cache": "pwsh -NoProfile -ExecutionPolicy Bypass -File tools/package-from-cache.ps1"
   },
   "devDependencies": {
@@ -34,6 +35,9 @@
         "dir"
       ],
       "artifactName": "YourCatDesktopPet-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "YourCatDesktopPet-Portable-${version}.${ext}"
     },
     "asar": true
   }
