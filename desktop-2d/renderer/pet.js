@@ -12,6 +12,7 @@ import {
   nextActionAfterCompletion,
   nextDirection,
   pixelsPerSecond,
+  randomGroomLoopDuration,
   REST_ACTIONS,
   REST_BREATHING_DURATION_MS,
   safeDropTarget,
@@ -37,6 +38,7 @@ let dragPointerId;
 let dragOffset = { x: 0, y: 0 };
 let dropRecovery;
 let action = "walk";
+let actionDuration = ACTION_DURATIONS.walk;
 let frameIndex = 0;
 let currentLayer = 0;
 let actionStartedAt = performance.now();
@@ -127,10 +129,11 @@ async function showFrame(actionName, index, immediate = false) {
   }
 }
 
-function startAction(name, now = performance.now()) {
+function startAction(name, now = performance.now(), duration = ACTION_DURATIONS[name]) {
   restState = undefined;
   pet.classList.remove("resting");
   action = name;
+  actionDuration = duration ?? Number.POSITIVE_INFINITY;
   frameIndex = 0;
   actionStartedAt = now;
   nextFrameAt = now;
@@ -182,7 +185,7 @@ function updateAction(now) {
         action,
         config.frames.length,
         config.frameMs,
-        ACTION_DURATIONS[action] ?? Number.POSITIVE_INFINITY,
+        actionDuration,
         elapsed,
       );
     showFrame(action, frameIndex);
@@ -191,8 +194,8 @@ function updateAction(now) {
   if (dragging && action === "pickupStart" && elapsed >= ACTION_DURATIONS.pickupStart) {
     startAction("pickedUp", now);
   } else if (!dragging && !(actionMenuOpen && action === "lieDown")
-      && Number.isFinite(ACTION_DURATIONS[action])
-      && elapsed >= ACTION_DURATIONS[action]) {
+      && Number.isFinite(actionDuration)
+      && elapsed >= actionDuration) {
     const successor = nextActionAfterCompletion(action);
     if (action === "edgeReturn" && dropRecovery) {
       position.x = dropRecovery.targetX;
@@ -204,7 +207,11 @@ function updateAction(now) {
       return;
     }
     if (successor === "walk") nextIdleAt = now + randomIdleDelay();
-    startAction(successor, now);
+    startAction(
+      successor,
+      now,
+      successor === "groomLoop" ? randomGroomLoopDuration() : ACTION_DURATIONS[successor],
+    );
   }
 }
 

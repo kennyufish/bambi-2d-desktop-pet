@@ -1,11 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import {
   ACTION_DURATIONS,
   advanceWrappedPosition,
   actionSequence,
   chooseIdleAction,
   clampPosition,
+  GROOM_LOOP_MAX_DURATION_MS,
+  GROOM_LOOP_MIN_DURATION_MS,
   frameForElapsed,
   hasExceededDragThreshold,
   isFullyOnScreen,
@@ -15,6 +18,7 @@ import {
   nextActionAfterCompletion,
   nextDirection,
   pixelsPerSecond,
+  randomGroomLoopDuration,
   safeDropTarget,
   REST_BREATHING_DURATION_MS,
   specialIdleSequenceDuration,
@@ -54,11 +58,34 @@ test("rest variants hold with procedural breathing while grooming retains its lo
   assert.equal(nextActionAfterCompletion("groomReturn"), "walk");
 });
 
+test("grooming loop reuses grooming frames six through eight", () => {
+  const manifest = JSON.parse(fs.readFileSync(
+    new URL("../sprite-packs/orange-tabby/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  assert.deepEqual(manifest.actions.groomLoop.frames, [
+    "frames/groom-5.png",
+    "frames/groom-6.png",
+    "frames/groom-7.png",
+  ]);
+  assert.equal(frameForElapsed("groomLoop", 3, 120, 3000, 0), 0);
+  assert.equal(frameForElapsed("groomLoop", 3, 120, 3000, 119), 0);
+  assert.equal(frameForElapsed("groomLoop", 3, 120, 3000, 120), 1);
+  assert.equal(frameForElapsed("groomLoop", 3, 120, 3000, 360), 0);
+});
+
+test("grooming loop duration is a random whole number of seconds from three to eight", () => {
+  assert.equal(GROOM_LOOP_MIN_DURATION_MS, 3000);
+  assert.equal(GROOM_LOOP_MAX_DURATION_MS, 8000);
+  assert.equal(randomGroomLoopDuration(() => 0), 3000);
+  assert.equal(randomGroomLoopDuration(() => 0.999999), 8000);
+});
+
 test("special idle actions report their animation sequence duration", () => {
   assert.equal(isSpecialIdleAction("restCurled"), true);
   assert.equal(isSpecialIdleAction("sleep"), true);
   assert.equal(isSpecialIdleAction("lieDown"), true);
-  assert.equal(specialIdleSequenceDuration("groom"), 6920);
+  assert.equal(specialIdleSequenceDuration("groom"), 9920);
   assert.equal(specialIdleSequenceDuration("sleep"), 12240);
   assert.equal(specialIdleSequenceDuration("lieDown"), 4680);
 });

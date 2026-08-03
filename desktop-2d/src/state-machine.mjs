@@ -10,7 +10,6 @@ export const ACTION_DURATIONS = Object.freeze({
   restLoaf: 960,
   restFaceDown: 960,
   groom: 960,
-  groomLoop: 5000,
   groomReturn: 960,
   landing: 800,
   edgeReturn: 800,
@@ -27,6 +26,13 @@ export const SPECIAL_IDLE_ACTIONS = Object.freeze([
 ]);
 export const REST_ACTIONS = Object.freeze(["restCurled", "restLoaf", "restFaceDown"]);
 export const REST_BREATHING_DURATION_MS = 10000;
+export const GROOM_LOOP_MIN_DURATION_MS = 3000;
+export const GROOM_LOOP_MAX_DURATION_MS = 8000;
+
+export function randomGroomLoopDuration(random = Math.random) {
+  const secondOffset = Math.max(0, Math.min(5, Math.floor(random() * 6)));
+  return (3 + secondOffset) * 1000;
+}
 
 export function actionSequence(action, frameCount) {
   const forward = Array.from({ length: frameCount }, (_, index) => index);
@@ -79,6 +85,11 @@ export function specialIdleSequenceDuration(action) {
   }
   if (isRestAction(action)) {
     return ACTION_DURATIONS[action] * 2 + REST_BREATHING_DURATION_MS;
+  }
+  if (action === "groom") {
+    return ACTION_DURATIONS[action]
+      + GROOM_LOOP_MAX_DURATION_MS
+      + ACTION_DURATIONS.groomReturn;
   }
   return ACTION_DURATIONS[action]
     + ACTION_DURATIONS[`${action}Loop`]
