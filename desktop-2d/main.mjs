@@ -12,6 +12,7 @@ let settingsWindow;
 let tray;
 let settings;
 let pointerProbeTimer;
+let fixedRest = false;
 
 app.setName("YourCatDesktopPet");
 
@@ -53,7 +54,7 @@ function createSettingsWindow() {
   }
   settingsWindow = new BrowserWindow({
       width: 420,
-      height: 500,
+      height: 560,
     resizable: false,
     maximizable: false,
     minimizable: false,
@@ -86,11 +87,6 @@ function setRandomAction(action, enabled) {
     ...settings,
     randomActions: { ...settings.randomActions, [action]: enabled },
   });
-  petWindow?.webContents.send("settings:changed", settings);
-}
-
-function setSpecialIdleCooldown(specialIdleCooldownMs) {
-  settings = writeSettings(settingsPath(), { ...settings, specialIdleCooldownMs });
   petWindow?.webContents.send("settings:changed", settings);
 }
 
@@ -163,14 +159,6 @@ ipcMain.on("pet:show-action-menu", (event) => {
     ["restFaceDown", "休息 3（趴睡）"],
     ["groom", "舔毛"],
   ];
-  const cooldowns = [
-    [5000, "5 秒"],
-    [10000, "10 秒"],
-    [30000, "30 秒"],
-    [60000, "1 分钟"],
-    [300000, "5 分钟"],
-    [600000, "10 分钟"],
-  ];
   const menu = Menu.buildFromTemplate([
     { label: "随机动作开关", enabled: false },
     { type: "separator" },
@@ -182,15 +170,14 @@ ipcMain.on("pet:show-action-menu", (event) => {
     })),
     { type: "separator" },
     {
-      label: "随机动作冷却",
-      submenu: cooldowns.map(([milliseconds, label]) => ({
-        label,
-        type: "radio",
-        checked: settings.specialIdleCooldownMs === milliseconds,
-        click: () => setSpecialIdleCooldown(milliseconds),
-      })),
+      label: "固定休息",
+      type: "checkbox",
+      checked: fixedRest,
+      click: (item) => {
+        fixedRest = item.checked;
+        sendCommand("set-fixed-rest", fixedRest);
+      },
     },
-    { label: "固定休息", click: () => sendCommand("pin-rest") },
     { type: "separator" },
     { label: "打开设置", click: createSettingsWindow },
     { label: "退出程序", click: () => app.quit() },

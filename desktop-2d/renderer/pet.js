@@ -53,6 +53,7 @@ let requestedFrameKey = "";
 let frameRequestId = 0;
 let actionMenuOpen = false;
 let restState;
+let fixedRest = false;
 const frameBounds = new Map();
 
 const bootstrap = await window.desktopPet.getBootstrap();
@@ -72,7 +73,7 @@ window.desktopPet.onCommand(({ type, value }) => {
     pet.classList.toggle("paused", paused);
   }
   if (type === "menu-closed") closeActionMenu();
-  if (type === "pin-rest") startPinnedRest();
+  if (type === "set-fixed-rest") setFixedRest(Boolean(value));
 });
 window.desktopPet.onSettings((value) => { settings = value; applySettings(); });
 window.desktopPet.onPointerProbe(({ x, y }) => {
@@ -137,11 +138,11 @@ function startAction(name, now = performance.now()) {
   showFrame(name, 0);
 }
 
-function startRest(name, now = performance.now(), firstFrame = 0) {
+function startRest(name, now = performance.now(), firstFrame = 0, fixed = false) {
   const config = manifest.actions[name];
   if (!config) return;
   pet.classList.remove("resting");
-  restState = { name, firstFrame, phase: "enter" };
+  restState = { name, firstFrame, phase: "enter", fixed };
   action = name;
   frameIndex = firstFrame;
   actionStartedAt = now;
@@ -198,6 +199,10 @@ function updateAction(now) {
       position.y = dropRecovery.targetY;
       dropRecovery = undefined;
     }
+    if (successor === "walk" && fixedRest) {
+      startPinnedRest(now);
+      return;
+    }
     if (successor === "walk") nextIdleAt = now + randomIdleDelay();
     startAction(successor, now);
   }
@@ -207,6 +212,7 @@ function updateRest(now) {
   const config = manifest.actions[restState.name];
   const lastFrame = config.frames.length - 1;
   if (restState.phase === "hold") {
+    if (restState.fixed) return;
     if (now >= restState.holdUntil) {
       restState.phase = "return";
       actionStartedAt = now;
@@ -383,7 +389,7 @@ stage.addEventListener("contextmenu", (event) => {
   if (actionMenuOpen || !hitTest(event.clientX, event.clientY)) return;
   event.preventDefault();
   actionMenuOpen = true;
-  startAction("lieDown");
+  if (!fixedRest) startAction("lieDown");
   window.desktopPet.showActionMenu();
 });
 
@@ -541,6 +547,7 @@ function closeActionMenu(now = performance.now()) {
   if (!actionMenuOpen) return;
   actionMenuOpen = false;
   nextIdleAt = now + randomIdleDelay();
+  if (fixedRest) return;
   if (action === "lieDown") {
     const config = manifest.actions.lieDown;
     const forwardDuration = config.frameMs * (config.frames.length - 1);
@@ -552,10 +559,28 @@ function closeActionMenu(now = performance.now()) {
 }
 
 function startPinnedRest(now = performance.now()) {
-  if (dragging || pendingDrag || paused) return;
+  if (dragging || pendingDrag) return;
   const enabledRests = REST_ACTIONS.filter((name) => settings.randomActions[name] !== false);
   const name = enabledRests[Math.floor(Math.random() * enabledRests.length)]
     ?? REST_ACTIONS[Math.floor(Math.random() * REST_ACTIONS.length)];
   nextSpecialIdleAt = now + specialIdleSequenceDuration(name) + settings.specialIdleCooldownMs;
-  startRest(name, now, 4);
+  startRest(name, now, 4, true);
+}
+
+function setFixedRest(enabled, now = performance.now()) {
+  fixedRest = enabled;
+  if (enabled) {
+    startPinnedRest(now);
+    return;
+  }
+  nextSpecialIdleAt = now;
+  if (restState) {
+    restState.fixed = false;
+    restState.phase = "return";
+    actionStartedAt = now;
+    nextFrameAt = now;
+    pet.classList.remove("resting");
+  } else if (action !== "walk") {
+    startAction("walk", now);
+  }
 }

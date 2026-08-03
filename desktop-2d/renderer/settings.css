@@ -6,6 +6,9 @@ h1 { margin: 0 0 4px; font-size: 24px; }
 label { display: grid; grid-template-columns: 1fr auto; gap: 8px; font-size: 14px; }
 input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: #be9664; }
 .toggle { display: flex; align-items: center; gap: 9px; }
+.number-field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; font-size: 14px; }
+.number-input { display: flex; align-items: center; gap: 6px; color: #bcb7a9; }
+.number-input input { width: 90px; padding: 6px 8px; border: 1px solid #676254; border-radius: 6px; background: #24271f; color: inherit; font: inherit; }
 p { margin: 0; color: #bcb7a9; font-size: 13px; line-height: 1.7; }
 .actions { position: sticky; bottom: 0; display: flex; justify-content: flex-end; gap: 10px; margin-top: auto; padding-top: 12px; background: #171914; }
 button { border: 1px solid #676254; border-radius: 8px; padding: 8px 18px; background: #2b2e26; color: inherit; }
