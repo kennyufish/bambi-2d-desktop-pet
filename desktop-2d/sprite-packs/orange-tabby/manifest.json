@@ -38,28 +38,6 @@
       "frameMs": 90,
       "loop": true
     },
-    "sit": {
-        "frames": [
-            "frames/sit-0.png",
-            "frames/sit-1.png",
-            "frames/sit-2.png",
-            "frames/sit-3.png",
-            "frames/sit-4.png",
-            "frames/sit-5.png",
-            "frames/sit-6.png",
-            "frames/sit-7.png",
-            "frames/sit-8.png",
-            "frames/sit-9.png",
-            "frames/sit-10.png",
-            "frames/sit-11.png",
-            "frames/sit-12.png",
-            "frames/sit-13.png",
-            "frames/sit-14.png",
-            "frames/sit-15.png"
-        ],
-        "frameMs": 60,
-      "loop": false
-    },
     "lieDown": {
       "frames": [
         "frames/lieDown-0.png",
@@ -296,42 +274,6 @@
       ],
       "frameMs": 180,
       "loop": true
-    },
-    "sitTail": {
-      "frames": [
-        "frames/sitTail-0.png",
-        "frames/sitTail-1.png",
-        "frames/sitTail-2.png",
-        "frames/sitTail-3.png",
-        "frames/sitTail-4.png",
-        "frames/sitTail-5.png",
-        "frames/sitTail-6.png",
-        "frames/sitTail-7.png"
-      ],
-      "frameMs": 140,
-      "loop": true
-    },
-    "sitReturn": {
-      "frames": [
-        "frames/sit-15.png",
-        "frames/sit-14.png",
-        "frames/sit-13.png",
-        "frames/sit-12.png",
-        "frames/sit-11.png",
-        "frames/sit-10.png",
-        "frames/sit-9.png",
-        "frames/sit-8.png",
-        "frames/sit-7.png",
-        "frames/sit-6.png",
-        "frames/sit-5.png",
-        "frames/sit-4.png",
-        "frames/sit-3.png",
-        "frames/sit-2.png",
-        "frames/sit-1.png",
-        "frames/sit-0.png"
-      ],
-      "frameMs": 60,
-      "loop": false
     },
     "sleepReturn": {
       "frames": [

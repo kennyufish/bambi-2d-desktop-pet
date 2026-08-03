@@ -2,9 +2,6 @@ export const ACTION_DURATIONS = Object.freeze({
   pickupStart: 640,
   pet: 1000,
   eat: 1000,
-  sit: 960,
-  sitTail: 5000,
-  sitReturn: 960,
   lieDown: 4680,
   sleep: 1120,
   sleepBreathing: 10000,
@@ -25,7 +22,7 @@ export const ACTION_DURATIONS = Object.freeze({
   edgeReturn: 800,
 });
 
-export const IDLE_ACTIONS = Object.freeze(["sit", "turn"]);
+export const IDLE_ACTIONS = Object.freeze(["turn"]);
 export const SPECIAL_IDLE_ACTIONS = Object.freeze([
   "lieDown",
   "sleep",
@@ -46,7 +43,7 @@ export function actionSequence(action, frameCount) {
 
 export function frameForElapsed(action, frameCount, frameMs, durationMs, elapsedMs) {
   if (frameCount <= 1) return 0;
-  if (["walk", "idle", "pickedUp", "sitTail", "sleepBreathing"].includes(action)
+  if (["walk", "idle", "pickedUp", "sleepBreathing"].includes(action)
       || action.endsWith("Loop")) {
     return Math.floor(elapsedMs / frameMs) % frameCount;
   }
@@ -63,8 +60,7 @@ export function frameForElapsed(action, frameCount, frameMs, durationMs, elapsed
 export function chooseIdleAction(random = Math.random, allowSpecial = false, enabledActions) {
   const isEnabled = (action) => enabledActions?.[action] !== false;
   const actions = [
-    ...(isEnabled("sit") ? ["sit"] : []),
-    "turn",
+    ...IDLE_ACTIONS,
     ...(allowSpecial ? SPECIAL_IDLE_ACTIONS.filter(isEnabled) : []),
   ];
   return actions[Math.min(actions.length - 1, Math.floor(random() * actions.length))];
@@ -97,9 +93,6 @@ export function nextDirection(direction) {
 
 export function nextActionAfterCompletion(action) {
   return {
-    sit: "sitTail",
-    sitTail: "sitReturn",
-    sitReturn: "walk",
     sleep: "sleepBreathing",
     sleepBreathing: "sleepReturn",
     sleepReturn: "walk",

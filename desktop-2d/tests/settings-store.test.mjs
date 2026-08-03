@@ -23,7 +23,6 @@ test("invalid values restore defaults", () => {
     speed: 0.2,
     openAtLogin: false,
     randomActions: {
-      sit: true,
       lieDown: true,
       sleep: true,
       restCurled: true,
@@ -36,9 +35,8 @@ test("invalid values restore defaults", () => {
 
 test("random action switches persist independently", () => {
   const settings = sanitizeSettings({
-    randomActions: { sit: false, groom: false },
+    randomActions: { groom: false },
   });
-  assert.equal(settings.randomActions.sit, false);
   assert.equal(settings.randomActions.groom, false);
   assert.equal(settings.randomActions.sleep, true);
 });

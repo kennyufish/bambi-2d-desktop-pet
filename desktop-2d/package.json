@@ -9,7 +9,7 @@
     "start": "electron .",
     "test": "python ../tools/validate_sprite_pack.py sprite-packs/orange-tabby && node --test tests/*.test.mjs",
     "pack:dir": "electron-builder --dir --win",
-    "pack:cache": "powershell -ExecutionPolicy Bypass -File tools/package-from-cache.ps1"
+    "pack:cache": "pwsh -NoProfile -ExecutionPolicy Bypass -File tools/package-from-cache.ps1"
   },
   "devDependencies": {
     "electron": "40.10.2",

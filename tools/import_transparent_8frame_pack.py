@@ -12,7 +12,6 @@ CANVAS = (520, 520)
 SHEETS = {
     "idle": ("00-idle-breathing-8f.png", 125, True),
     "walk": ("01-walk-v2-8f.png", 90, True),
-    "sit": ("02-sit-down-8f.png", 120, False),
     "lieDown": ("03-lie-down-8f.png", 120, False),
     "sleep": ("04-sleep-8f.png", 140, False),
     "pet": ("05-petting-no-hand-8f.png", 100, False),
@@ -256,30 +255,6 @@ def breathing_frames(source):
     return frames
 
 
-def tail_wag_frames(source):
-    pixels = np.array(source)
-    height, width = pixels.shape[:2]
-    yy, xx = np.mgrid[0:height, 0:width].astype(np.float32)
-    weight = np.clip((310 - xx) / 135, 0, 1) * np.clip((yy - 450) / 45, 0, 1)
-    phases = (0.0, 0.7, 1.0, 0.7, 0.0, -0.7, -1.0, -0.7)
-    frames = []
-    for phase in phases:
-        map_x = xx - 11 * phase * weight
-        map_y = yy + 5 * abs(phase) * weight
-        warped = cv2.remap(
-            pixels,
-            map_x,
-            map_y,
-            interpolation=cv2.INTER_LANCZOS4,
-            borderMode=cv2.BORDER_CONSTANT,
-            borderValue=(0, 0, 0, 0),
-        )
-        blend = np.clip(weight[:, :, None], 0, 1)
-        result = (pixels * (1 - blend) + warped * blend).astype(np.uint8)
-        frames.append(Image.fromarray(result))
-    return frames
-
-
 def add_derived_action(actions, frames_dir, name, frames, frame_ms, loop):
     paths = []
     for index, frame in enumerate(frames):
@@ -364,19 +339,6 @@ def main():
         180,
         True,
     )
-    add_derived_action(
-        actions,
-        frames_dir,
-        "sitTail",
-        tail_wag_frames(Image.open(frames_dir / "sit-7.png").convert("RGBA")),
-        140,
-        True,
-    )
-    actions["sitReturn"] = {
-        "frames": list(reversed(actions["sit"]["frames"])),
-        "frameMs": actions["sit"]["frameMs"],
-        "loop": False,
-    }
     actions["sleepReturn"] = {
         "frames": list(reversed(actions["sleep"]["frames"])),
         "frameMs": actions["sleep"]["frameMs"],

@@ -2,7 +2,6 @@ import fs from "node:fs";
 import path from "node:path";
 
 export const RANDOM_ACTION_KEYS = Object.freeze([
-  "sit",
   "lieDown",
   "sleep",
   "restCurled",

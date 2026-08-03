@@ -146,22 +146,26 @@ function startRequestedAction(name, now = performance.now()) {
 
 function updateAction(now) {
   const config = manifest.actions[action];
+  const elapsed = now - actionStartedAt;
   if (now >= nextFrameAt) {
-    frameIndex = frameForElapsed(
-      action,
-      config.frames.length,
-      config.frameMs,
-      ACTION_DURATIONS[action] ?? Number.POSITIVE_INFINITY,
-      now - actionStartedAt,
-    );
+    const forwardDuration = config.frameMs * (config.frames.length - 1);
+    frameIndex = actionMenuOpen && action === "lieDown" && elapsed >= forwardDuration
+      ? config.frames.length - 1
+      : frameForElapsed(
+        action,
+        config.frames.length,
+        config.frameMs,
+        ACTION_DURATIONS[action] ?? Number.POSITIVE_INFINITY,
+        elapsed,
+      );
     showFrame(action, frameIndex);
     nextFrameAt = now + config.frameMs;
   }
-  if (dragging && action === "pickupStart" && now - actionStartedAt >= ACTION_DURATIONS.pickupStart) {
+  if (dragging && action === "pickupStart" && elapsed >= ACTION_DURATIONS.pickupStart) {
     startAction("pickedUp", now);
-  } else if (!dragging && !(actionMenuOpen && action === "sitTail")
+  } else if (!dragging && !(actionMenuOpen && action === "lieDown")
       && Number.isFinite(ACTION_DURATIONS[action])
-      && now - actionStartedAt >= ACTION_DURATIONS[action]) {
+      && elapsed >= ACTION_DURATIONS[action]) {
     const successor = nextActionAfterCompletion(action);
     if (action === "edgeReturn" && dropRecovery) {
       position.x = dropRecovery.targetX;
@@ -320,7 +324,7 @@ stage.addEventListener("contextmenu", (event) => {
   if (actionMenuOpen || !hitTest(event.clientX, event.clientY)) return;
   event.preventDefault();
   actionMenuOpen = true;
-  startAction("sit");
+  startAction("lieDown");
   window.desktopPet.showActionMenu();
 });
 
@@ -442,5 +446,12 @@ function closeActionMenu(now = performance.now()) {
   if (!actionMenuOpen) return;
   actionMenuOpen = false;
   nextIdleAt = now + randomIdleDelay();
-  if (action === "sit" || action === "sitTail") startAction("sitReturn", now);
+  if (action === "lieDown") {
+    const config = manifest.actions.lieDown;
+    const forwardDuration = config.frameMs * (config.frames.length - 1);
+    if (now - actionStartedAt >= forwardDuration) {
+      actionStartedAt = now - (ACTION_DURATIONS.lieDown - forwardDuration);
+      nextFrameAt = now;
+    }
+  }
 }

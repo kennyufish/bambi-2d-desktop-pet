@@ -21,7 +21,6 @@ import {
 
 test("lie-down plays forward and reverse while staged actions play once", () => {
   assert.deepEqual(actionSequence("lieDown", 8), [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0]);
-  assert.deepEqual(actionSequence("sit", 8), [0, 1, 2, 3, 4, 5, 6, 7]);
   assert.deepEqual(actionSequence("pickedUp", 8), [0, 1, 2, 3, 4, 5, 6, 7]);
 });
 
@@ -33,16 +32,9 @@ test("lie-down holds its final pose for three seconds", () => {
   assert.equal(frameForElapsed("lieDown", 8, 120, ACTION_DURATIONS.lieDown, 3840), 6);
 });
 
-test("sleep breathing and sitting tail loops use requested durations", () => {
-  assert.equal(ACTION_DURATIONS.sit, 960);
+test("sleep breathing loop uses requested duration", () => {
   assert.equal(ACTION_DURATIONS.sleepBreathing, 10000);
-  assert.equal(ACTION_DURATIONS.sitTail, 5000);
-  assert.equal(frameForElapsed("sit", 16, 60, ACTION_DURATIONS.sit, 899), 14);
-  assert.equal(frameForElapsed("sit", 16, 60, ACTION_DURATIONS.sit, 959), 15);
   assert.equal(frameForElapsed("sleepBreathing", 8, 180, 10000, 1440), 0);
-  assert.equal(frameForElapsed("sitTail", 8, 140, 5000, 1120), 0);
-  assert.equal(nextActionAfterCompletion("sit"), "sitTail");
-  assert.equal(nextActionAfterCompletion("sitTail"), "sitReturn");
   assert.equal(nextActionAfterCompletion("sleep"), "sleepBreathing");
   assert.equal(nextActionAfterCompletion("sleepBreathing"), "sleepReturn");
   assert.equal(nextActionAfterCompletion("sleepReturn"), "walk");
@@ -67,7 +59,7 @@ test("special idle actions share a five-minute post-animation cooldown", () => {
   assert.equal(SPECIAL_IDLE_COOLDOWN_MS, 300000);
   assert.equal(isSpecialIdleAction("restCurled"), true);
   assert.equal(isSpecialIdleAction("sleep"), true);
-  assert.equal(isSpecialIdleAction("sit"), false);
+  assert.equal(isSpecialIdleAction("lieDown"), true);
   assert.equal(specialIdleSequenceDuration("restCurled"), 11920);
   assert.equal(specialIdleSequenceDuration("groom"), 6920);
   assert.equal(specialIdleSequenceDuration("sleep"), 12240);
@@ -104,7 +96,7 @@ test("petting head region excludes the body", () => {
 });
 
 test("idle action selection and direction are deterministic at boundaries", () => {
-  assert.equal(chooseIdleAction(() => 0), "sit");
+  assert.equal(chooseIdleAction(() => 0), "turn");
   assert.equal(chooseIdleAction(() => 0.999), "turn");
   assert.equal(chooseIdleAction(() => 0.5, true), "restCurled");
   assert.equal(chooseIdleAction(() => 0.999, true), "groom");
@@ -114,7 +106,6 @@ test("idle action selection and direction are deterministic at boundaries", () =
 
 test("disabled random actions are excluded while turning remains available", () => {
   const disabled = {
-    sit: false,
     lieDown: false,
     sleep: false,
     restCurled: false,

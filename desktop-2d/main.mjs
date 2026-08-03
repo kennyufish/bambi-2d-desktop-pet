@@ -151,7 +151,6 @@ ipcMain.on("pet:set-interactive", (_event, interactive) => {
 ipcMain.on("pet:show-action-menu", (event) => {
   if (!petWindow || petWindow.isDestroyed() || event.sender !== petWindow.webContents) return;
   const actions = [
-    ["sit", "坐下"],
     ["lieDown", "趴下"],
     ["sleep", "睡觉"],
     ["restCurled", "休息 1（蜷缩）"],
