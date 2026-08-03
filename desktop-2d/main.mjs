@@ -89,6 +89,11 @@ function setRandomAction(action, enabled) {
   petWindow?.webContents.send("settings:changed", settings);
 }
 
+function setSpecialIdleCooldown(specialIdleCooldownMs) {
+  settings = writeSettings(settingsPath(), { ...settings, specialIdleCooldownMs });
+  petWindow?.webContents.send("settings:changed", settings);
+}
+
 function createTray() {
   const iconPath = path.join(appDirectory, "sprite-packs", activePackId, "frames", "idle-0.png");
   const icon = nativeImage.createFromPath(iconPath).resize({ width: 32, height: 32 });
@@ -158,6 +163,14 @@ ipcMain.on("pet:show-action-menu", (event) => {
     ["restFaceDown", "休息 3（趴睡）"],
     ["groom", "舔毛"],
   ];
+  const cooldowns = [
+    [5000, "5 秒"],
+    [10000, "10 秒"],
+    [30000, "30 秒"],
+    [60000, "1 分钟"],
+    [300000, "5 分钟"],
+    [600000, "10 分钟"],
+  ];
   const menu = Menu.buildFromTemplate([
     { label: "随机动作开关", enabled: false },
     { type: "separator" },
@@ -167,6 +180,17 @@ ipcMain.on("pet:show-action-menu", (event) => {
       checked: settings.randomActions[action],
       click: (item) => setRandomAction(action, item.checked),
     })),
+    { type: "separator" },
+    {
+      label: "随机动作冷却",
+      submenu: cooldowns.map(([milliseconds, label]) => ({
+        label,
+        type: "radio",
+        checked: settings.specialIdleCooldownMs === milliseconds,
+        click: () => setSpecialIdleCooldown(milliseconds),
+      })),
+    },
+    { label: "固定休息", click: () => sendCommand("pin-rest") },
     { type: "separator" },
     { label: "打开设置", click: createSettingsWindow },
     { label: "退出程序", click: () => app.quit() },

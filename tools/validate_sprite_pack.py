@@ -11,9 +11,8 @@ def main():
     required = {
         "idle", "walk", "lieDown", "sleep",
         "sleepBreathing", "sleepReturn", "pet", "eat", "pickupStart", "pickedUp",
-        "landing", "edgeReturn", "restCurled", "restCurledLoop", "restCurledReturn",
-        "restLoaf", "restLoafLoop", "restLoafReturn", "restFaceDown",
-        "restFaceDownLoop", "restFaceDownReturn", "groom", "groomLoop", "groomReturn",
+        "landing", "edgeReturn", "restCurled", "restLoaf", "restFaceDown",
+        "groom", "groomLoop", "groomReturn",
     }
     assert set(manifest["actions"]) == required
     assert manifest["actions"]["eat"].get("props") == ["bowl"]

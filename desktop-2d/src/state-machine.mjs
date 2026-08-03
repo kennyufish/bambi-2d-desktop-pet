@@ -7,14 +7,8 @@ export const ACTION_DURATIONS = Object.freeze({
   sleepBreathing: 10000,
   sleepReturn: 1120,
   restCurled: 960,
-  restCurledLoop: 10000,
-  restCurledReturn: 960,
   restLoaf: 960,
-  restLoafLoop: 10000,
-  restLoafReturn: 960,
   restFaceDown: 960,
-  restFaceDownLoop: 10000,
-  restFaceDownReturn: 960,
   groom: 960,
   groomLoop: 5000,
   groomReturn: 960,
@@ -31,7 +25,8 @@ export const SPECIAL_IDLE_ACTIONS = Object.freeze([
   "restFaceDown",
   "groom",
 ]);
-export const SPECIAL_IDLE_COOLDOWN_MS = 5 * 60 * 1000;
+export const REST_ACTIONS = Object.freeze(["restCurled", "restLoaf", "restFaceDown"]);
+export const REST_BREATHING_DURATION_MS = 10000;
 
 export function actionSequence(action, frameCount) {
   const forward = Array.from({ length: frameCount }, (_, index) => index);
@@ -70,6 +65,10 @@ export function isSpecialIdleAction(action) {
   return SPECIAL_IDLE_ACTIONS.includes(action);
 }
 
+export function isRestAction(action) {
+  return REST_ACTIONS.includes(action);
+}
+
 export function specialIdleSequenceDuration(action) {
   if (!isSpecialIdleAction(action)) return 0;
   if (action === "lieDown") return ACTION_DURATIONS.lieDown;
@@ -77,6 +76,9 @@ export function specialIdleSequenceDuration(action) {
     return ACTION_DURATIONS.sleep
       + ACTION_DURATIONS.sleepBreathing
       + ACTION_DURATIONS.sleepReturn;
+  }
+  if (isRestAction(action)) {
+    return ACTION_DURATIONS[action] * 2 + REST_BREATHING_DURATION_MS;
   }
   return ACTION_DURATIONS[action]
     + ACTION_DURATIONS[`${action}Loop`]
@@ -96,15 +98,6 @@ export function nextActionAfterCompletion(action) {
     sleep: "sleepBreathing",
     sleepBreathing: "sleepReturn",
     sleepReturn: "walk",
-    restCurled: "restCurledLoop",
-    restCurledLoop: "restCurledReturn",
-    restCurledReturn: "walk",
-    restLoaf: "restLoafLoop",
-    restLoafLoop: "restLoafReturn",
-    restLoafReturn: "walk",
-    restFaceDown: "restFaceDownLoop",
-    restFaceDownLoop: "restFaceDownReturn",
-    restFaceDownReturn: "walk",
     groom: "groomLoop",
     groomLoop: "groomReturn",
     groomReturn: "walk",

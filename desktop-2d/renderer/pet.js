@@ -7,12 +7,14 @@ import {
   hasExceededDragThreshold,
   isFullyOnScreen,
   isHeadRegion,
+  isRestAction,
   isSpecialIdleAction,
   nextActionAfterCompletion,
   nextDirection,
   pixelsPerSecond,
+  REST_ACTIONS,
+  REST_BREATHING_DURATION_MS,
   safeDropTarget,
-  SPECIAL_IDLE_COOLDOWN_MS,
   specialIdleSequenceDuration,
 } from "../src/state-machine.mjs";
 
@@ -50,6 +52,8 @@ let displayedFrameKey = "";
 let requestedFrameKey = "";
 let frameRequestId = 0;
 let actionMenuOpen = false;
+let restState;
+const frameBounds = new Map();
 
 const bootstrap = await window.desktopPet.getBootstrap();
 manifest = bootstrap.manifest;
@@ -68,6 +72,7 @@ window.desktopPet.onCommand(({ type, value }) => {
     pet.classList.toggle("paused", paused);
   }
   if (type === "menu-closed") closeActionMenu();
+  if (type === "pin-rest") startPinnedRest();
 });
 window.desktopPet.onSettings((value) => { settings = value; applySettings(); });
 window.desktopPet.onPointerProbe(({ x, y }) => {
@@ -79,13 +84,14 @@ function frameUrl(actionName, index) {
 }
 
 async function preloadFrames() {
-  const urls = [...new Set(Object.entries(manifest.actions).flatMap(([actionName, config]) =>
-    config.frames.map((_, index) => frameUrl(actionName, index)),
-  ))];
-  await Promise.all(urls.map(async (url) => {
+  const frames = Object.entries(manifest.actions).flatMap(([actionName, config]) =>
+    config.frames.map((_, index) => ({ actionName, index, url: frameUrl(actionName, index) })),
+  );
+  await Promise.all(frames.map(async ({ actionName, index, url }) => {
     const image = new Image();
     image.src = url;
     await image.decode();
+    frameBounds.set(`${actionName}:${index}`, measureAlphaBounds(image));
   }));
 }
 
@@ -121,12 +127,27 @@ async function showFrame(actionName, index, immediate = false) {
 }
 
 function startAction(name, now = performance.now()) {
+  restState = undefined;
+  pet.classList.remove("resting");
   action = name;
   frameIndex = 0;
   actionStartedAt = now;
   nextFrameAt = now;
   pet.dataset.action = name;
   showFrame(name, 0);
+}
+
+function startRest(name, now = performance.now(), firstFrame = 0) {
+  const config = manifest.actions[name];
+  if (!config) return;
+  pet.classList.remove("resting");
+  restState = { name, firstFrame, phase: "enter" };
+  action = name;
+  frameIndex = firstFrame;
+  actionStartedAt = now;
+  nextFrameAt = now;
+  pet.dataset.action = name;
+  showFrame(name, firstFrame);
 }
 
 function startRequestedAction(name, now = performance.now()) {
@@ -138,13 +159,18 @@ function startRequestedAction(name, now = performance.now()) {
   }
   if (!manifest.actions[name]) return;
   if (isSpecialIdleAction(name)) {
-    nextSpecialIdleAt = now + specialIdleSequenceDuration(name) + SPECIAL_IDLE_COOLDOWN_MS;
+    nextSpecialIdleAt = now + specialIdleSequenceDuration(name) + settings.specialIdleCooldownMs;
   }
   nextIdleAt = now + randomIdleDelay();
-  startAction(name, now);
+  if (isRestAction(name)) startRest(name, now);
+  else startAction(name, now);
 }
 
 function updateAction(now) {
+  if (restState) {
+    updateRest(now);
+    return;
+  }
   const config = manifest.actions[action];
   const elapsed = now - actionStartedAt;
   if (now >= nextFrameAt) {
@@ -174,6 +200,38 @@ function updateAction(now) {
     }
     if (successor === "walk") nextIdleAt = now + randomIdleDelay();
     startAction(successor, now);
+  }
+}
+
+function updateRest(now) {
+  const config = manifest.actions[restState.name];
+  const lastFrame = config.frames.length - 1;
+  if (restState.phase === "hold") {
+    if (now >= restState.holdUntil) {
+      restState.phase = "return";
+      actionStartedAt = now;
+      nextFrameAt = now;
+      pet.classList.remove("resting");
+    }
+    return;
+  }
+  if (now < nextFrameAt) return;
+  const elapsed = now - actionStartedAt;
+  const offset = Math.floor(elapsed / config.frameMs);
+  frameIndex = restState.phase === "enter"
+    ? Math.min(lastFrame, restState.firstFrame + offset)
+    : Math.max(restState.firstFrame, lastFrame - offset);
+  showFrame(restState.name, frameIndex);
+  nextFrameAt = now + config.frameMs;
+  const phaseDuration = (lastFrame - restState.firstFrame + 1) * config.frameMs;
+  if (restState.phase === "enter" && elapsed >= phaseDuration) {
+    restState.phase = "hold";
+    restState.holdUntil = now + REST_BREATHING_DURATION_MS;
+    pet.classList.add("resting");
+  } else if (restState.phase === "return" && elapsed >= phaseDuration) {
+    restState = undefined;
+    startAction("walk", now);
+    nextIdleAt = now + randomIdleDelay();
   }
 }
 
@@ -217,9 +275,10 @@ function tick(now) {
           if (isSpecialIdleAction(idleAction)) {
             nextSpecialIdleAt = now
               + specialIdleSequenceDuration(idleAction)
-              + SPECIAL_IDLE_COOLDOWN_MS;
+              + settings.specialIdleCooldownMs;
           }
-          startAction(idleAction, now);
+          if (isRestAction(idleAction)) startRest(idleAction, now);
+          else startAction(idleAction, now);
         }
         nextIdleAt = now + randomIdleDelay();
       }
@@ -331,6 +390,7 @@ stage.addEventListener("contextmenu", (event) => {
 stage.addEventListener("dblclick", (event) => {
   if (event.button !== 0 || !headHitTest(event.clientX, event.clientY)) return;
   event.preventDefault();
+  alignHeadToPointer("pet", event.clientX, event.clientY);
   startRequestedAction("pet");
 });
 
@@ -365,6 +425,29 @@ function alphaBounds() {
   return right < 0 ? undefined : { left, top, right: right + 1, bottom: bottom + 1 };
 }
 
+function measureAlphaBounds(image) {
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  context.drawImage(image, 0, 0);
+  const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  let left = canvas.width;
+  let top = canvas.height;
+  let right = -1;
+  let bottom = -1;
+  for (let y = 0; y < canvas.height; y += 1) {
+    for (let x = 0; x < canvas.width; x += 1) {
+      if (data[(y * canvas.width + x) * 4 + 3] <= 24) continue;
+      left = Math.min(left, x);
+      top = Math.min(top, y);
+      right = Math.max(right, x);
+      bottom = Math.max(bottom, y);
+    }
+  }
+  return right < 0 ? undefined : { left, top, right: right + 1, bottom: bottom + 1 };
+}
+
 function hitTest(clientX, clientY) {
   const rect = pet.getBoundingClientRect();
   if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return false;
@@ -380,6 +463,18 @@ function hitTest(clientX, clientY) {
 function headHitTest(clientX, clientY) {
   const point = imagePoint(clientX, clientY);
   return point && hitTest(clientX, clientY) && isHeadRegion(point.x, point.y, currentAlphaBounds);
+}
+
+function alignHeadToPointer(actionName, clientX, clientY) {
+  const bounds = frameBounds.get(`${actionName}:0`);
+  if (!bounds) return;
+  const scale = effectiveScale();
+  const headX = bounds.left + (bounds.right - bounds.left) * 0.84;
+  const headY = bounds.top + (bounds.bottom - bounds.top) * 0.3;
+  const anchorX = direction < 0 ? manifest.canvas.width - headX : headX;
+  const transformOffset = manifest.canvas.height * (1 - scale);
+  position.x = clientX - anchorX * scale;
+  position.y = clampVerticalPosition(clientY - headY * scale - transformOffset);
 }
 
 function imagePoint(clientX, clientY) {
@@ -454,4 +549,13 @@ function closeActionMenu(now = performance.now()) {
       nextFrameAt = now;
     }
   }
+}
+
+function startPinnedRest(now = performance.now()) {
+  if (dragging || pendingDrag || paused) return;
+  const enabledRests = REST_ACTIONS.filter((name) => settings.randomActions[name] !== false);
+  const name = enabledRests[Math.floor(Math.random() * enabledRests.length)]
+    ?? REST_ACTIONS[Math.floor(Math.random() * REST_ACTIONS.length)];
+  nextSpecialIdleAt = now + specialIdleSequenceDuration(name) + settings.specialIdleCooldownMs;
+  startRest(name, now, 4);
 }

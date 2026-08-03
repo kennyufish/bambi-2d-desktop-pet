@@ -10,12 +10,13 @@ import {
   hasExceededDragThreshold,
   isFullyOnScreen,
   isHeadRegion,
+  isRestAction,
   isSpecialIdleAction,
   nextActionAfterCompletion,
   nextDirection,
   pixelsPerSecond,
   safeDropTarget,
-  SPECIAL_IDLE_COOLDOWN_MS,
+  REST_BREATHING_DURATION_MS,
   specialIdleSequenceDuration,
 } from "../src/state-machine.mjs";
 
@@ -40,27 +41,23 @@ test("sleep breathing loop uses requested duration", () => {
   assert.equal(nextActionAfterCompletion("sleepReturn"), "walk");
 });
 
-test("three rest variants and grooming enter, loop, then return to walking", () => {
-  for (const [name, loopDuration] of [
-    ["restCurled", 10000],
-    ["restLoaf", 10000],
-    ["restFaceDown", 10000],
-    ["groom", 5000],
-  ]) {
-    assert.equal(nextActionAfterCompletion(name), `${name}Loop`);
-    assert.equal(nextActionAfterCompletion(`${name}Loop`), `${name}Return`);
-    assert.equal(nextActionAfterCompletion(`${name}Return`), "walk");
-    assert.equal(ACTION_DURATIONS[`${name}Loop`], loopDuration);
-    assert.equal(frameForElapsed(`${name}Loop`, 8, 100, loopDuration, 800), 0);
+test("rest variants hold with procedural breathing while grooming retains its loop", () => {
+  for (const name of ["restCurled", "restLoaf", "restFaceDown"]) {
+    assert.equal(isRestAction(name), true);
+    assert.equal(ACTION_DURATIONS[`${name}Loop`], undefined);
+    assert.equal(nextActionAfterCompletion(name), "walk");
+    assert.equal(specialIdleSequenceDuration(name), 11920);
   }
+  assert.equal(REST_BREATHING_DURATION_MS, 10000);
+  assert.equal(nextActionAfterCompletion("groom"), "groomLoop");
+  assert.equal(nextActionAfterCompletion("groomLoop"), "groomReturn");
+  assert.equal(nextActionAfterCompletion("groomReturn"), "walk");
 });
 
-test("special idle actions share a five-minute post-animation cooldown", () => {
-  assert.equal(SPECIAL_IDLE_COOLDOWN_MS, 300000);
+test("special idle actions report their animation sequence duration", () => {
   assert.equal(isSpecialIdleAction("restCurled"), true);
   assert.equal(isSpecialIdleAction("sleep"), true);
   assert.equal(isSpecialIdleAction("lieDown"), true);
-  assert.equal(specialIdleSequenceDuration("restCurled"), 11920);
   assert.equal(specialIdleSequenceDuration("groom"), 6920);
   assert.equal(specialIdleSequenceDuration("sleep"), 12240);
   assert.equal(specialIdleSequenceDuration("lieDown"), 4680);

@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   scale: 1,
   speed: 0.65,
   openAtLogin: false,
+  specialIdleCooldownMs: 10000,
   randomActions: DEFAULT_RANDOM_ACTIONS,
 });
 
@@ -26,6 +27,12 @@ export function sanitizeSettings(value = {}) {
     scale: clamp(Number(value.scale), 0.65, 1.35, DEFAULT_SETTINGS.scale),
     speed: clamp(Number(value.speed), 0.2, 1.2, DEFAULT_SETTINGS.speed),
     openAtLogin: Boolean(value.openAtLogin),
+    specialIdleCooldownMs: clamp(
+      Number(value.specialIdleCooldownMs),
+      5000,
+      10 * 60 * 1000,
+      DEFAULT_SETTINGS.specialIdleCooldownMs,
+    ),
     randomActions: Object.fromEntries(RANDOM_ACTION_KEYS.map((action) => [
       action,
       typeof value.randomActions?.[action] === "boolean"

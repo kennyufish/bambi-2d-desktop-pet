@@ -20,18 +20,14 @@ SHEETS = {
     "pickedUp": ("08-picked-up-scruff-loop-8f.png", 100, True),
     "landing": ("09-release-landing-8f.png", 100, False),
     "restCurled": ("01-lie-down-curled-8f.png", 120, False),
-    "restCurledLoop": ("02-rest-breathing-curled-8f.png", 180, True),
     "restLoaf": ("03-lie-down-loaf-8f.png", 120, False),
-    "restLoafLoop": ("04-rest-breathing-loaf-8f.png", 180, True),
     "restFaceDown": ("05-lie-down-face-down-8f.png", 120, False),
-    "restFaceDownLoop": ("06-rest-breathing-face-down-8f.png", 180, True),
     "groom": ("07-stand-to-groom-8f.png", 120, False),
     "groomLoop": ("08-grooming-loop-8f.png", 140, True),
 }
 
 VARIANT_ACTIONS = {
-    "restCurled", "restCurledLoop", "restLoaf", "restLoafLoop",
-    "restFaceDown", "restFaceDownLoop", "groom", "groomLoop",
+    "restCurled", "restLoaf", "restFaceDown", "groom", "groomLoop",
 }
 
 GRAB_ANCHOR = (320, 88)
@@ -344,12 +340,11 @@ def main():
         "frameMs": actions["sleep"]["frameMs"],
         "loop": False,
     }
-    for name in ("restCurled", "restLoaf", "restFaceDown", "groom"):
-        actions[f"{name}Return"] = {
-            "frames": list(reversed(actions[name]["frames"])),
-            "frameMs": actions[name]["frameMs"],
-            "loop": False,
-        }
+    actions["groomReturn"] = {
+        "frames": list(reversed(actions["groom"]["frames"])),
+        "frameMs": actions["groom"]["frameMs"],
+        "loop": False,
+    }
     actions["edgeReturn"] = {
         "frames": actions["landing"]["frames"],
         "frameMs": actions["landing"]["frameMs"],
