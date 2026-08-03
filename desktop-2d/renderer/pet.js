@@ -4,12 +4,16 @@ import {
   chooseIdleAction,
   clampPosition,
   frameForElapsed,
+  hasExceededDragThreshold,
   isFullyOnScreen,
   isHeadRegion,
+  isSpecialIdleAction,
   nextActionAfterCompletion,
   nextDirection,
   pixelsPerSecond,
   safeDropTarget,
+  SPECIAL_IDLE_COOLDOWN_MS,
+  specialIdleSequenceDuration,
 } from "../src/state-machine.mjs";
 
 const stage = document.querySelector("#stage");
@@ -26,6 +30,8 @@ let position = { x: 40, y: 0 };
 let direction = 1;
 let paused = false;
 let dragging = false;
+let pendingDrag;
+let dragPointerId;
 let dragOffset = { x: 0, y: 0 };
 let dropRecovery;
 let action = "walk";
@@ -35,6 +41,7 @@ let actionStartedAt = performance.now();
 let nextFrameAt = 0;
 let nextDirectionAt = performance.now() + 5000;
 let nextIdleAt = performance.now() + randomIdleDelay();
+let nextSpecialIdleAt = 0;
 let previousTick = performance.now();
 let currentImage;
 let currentAlphaBounds;
@@ -42,6 +49,7 @@ let interactive = false;
 let displayedFrameKey = "";
 let requestedFrameKey = "";
 let frameRequestId = 0;
+let actionMenuOpen = false;
 
 const bootstrap = await window.desktopPet.getBootstrap();
 manifest = bootstrap.manifest;
@@ -54,15 +62,16 @@ applySettings();
 await preloadFrames();
 await showFrame("idle", 0, true);
 
-window.desktopPet.onCommand(({ type }) => {
+window.desktopPet.onCommand(({ type, value }) => {
   if (type === "pause") {
     paused = !paused;
     pet.classList.toggle("paused", paused);
   }
+  if (type === "menu-closed") closeActionMenu();
 });
 window.desktopPet.onSettings((value) => { settings = value; applySettings(); });
 window.desktopPet.onPointerProbe(({ x, y }) => {
-  if (!dragging) setInteractive(hitTest(x, y));
+  if (!dragging && !pendingDrag) setInteractive(hitTest(x, y));
 });
 
 function frameUrl(actionName, index) {
@@ -120,6 +129,21 @@ function startAction(name, now = performance.now()) {
   showFrame(name, 0);
 }
 
+function startRequestedAction(name, now = performance.now()) {
+  if (dragging || pendingDrag || paused) return;
+  if (name === "turn") {
+    direction = nextDirection(direction);
+    nextIdleAt = now + randomIdleDelay();
+    return;
+  }
+  if (!manifest.actions[name]) return;
+  if (isSpecialIdleAction(name)) {
+    nextSpecialIdleAt = now + specialIdleSequenceDuration(name) + SPECIAL_IDLE_COOLDOWN_MS;
+  }
+  nextIdleAt = now + randomIdleDelay();
+  startAction(name, now);
+}
+
 function updateAction(now) {
   const config = manifest.actions[action];
   if (now >= nextFrameAt) {
@@ -135,7 +159,8 @@ function updateAction(now) {
   }
   if (dragging && action === "pickupStart" && now - actionStartedAt >= ACTION_DURATIONS.pickupStart) {
     startAction("pickedUp", now);
-  } else if (!dragging && Number.isFinite(ACTION_DURATIONS[action])
+  } else if (!dragging && !(actionMenuOpen && action === "sitTail")
+      && Number.isFinite(ACTION_DURATIONS[action])
       && now - actionStartedAt >= ACTION_DURATIONS[action]) {
     const successor = nextActionAfterCompletion(action);
     if (action === "edgeReturn" && dropRecovery) {
@@ -143,6 +168,7 @@ function updateAction(now) {
       position.y = dropRecovery.targetY;
       dropRecovery = undefined;
     }
+    if (successor === "walk") nextIdleAt = now + randomIdleDelay();
     startAction(successor, now);
   }
 }
@@ -177,9 +203,20 @@ function tick(now) {
         nextDirectionAt = now + 5000;
       }
       if (fullyOnScreen && now >= nextIdleAt) {
-        const idleAction = chooseIdleAction();
+        const idleAction = chooseIdleAction(
+          Math.random,
+          now >= nextSpecialIdleAt,
+          settings.randomActions,
+        );
         if (idleAction === "turn") direction = nextDirection(direction);
-        else startAction(idleAction, now);
+        else {
+          if (isSpecialIdleAction(idleAction)) {
+            nextSpecialIdleAt = now
+              + specialIdleSequenceDuration(idleAction)
+              + SPECIAL_IDLE_COOLDOWN_MS;
+          }
+          startAction(idleAction, now);
+        }
         nextIdleAt = now + randomIdleDelay();
       }
     }
@@ -202,6 +239,16 @@ function applySettings() {
 }
 
 stage.addEventListener("pointermove", (event) => {
+  if (pendingDrag && event.pointerId === pendingDrag.pointerId) {
+    if (hasExceededDragThreshold(
+      pendingDrag.startX,
+      pendingDrag.startY,
+      event.clientX,
+      event.clientY,
+    )) beginDrag(event);
+    setInteractive(true);
+    return;
+  }
   if (dragging) {
     positionForDragCursor(event.clientX, event.clientY);
     setInteractive(true);
@@ -222,21 +269,28 @@ stage.addEventListener("pointermove", (event) => {
 
 stage.addEventListener("pointerdown", (event) => {
   if (event.button !== 0 || !hitTest(event.clientX, event.clientY)) return;
-  dragging = true;
-  pet.classList.add("dragging");
-  startAction("pickupStart");
-  dragOffset = manifest.actions.pickupStart.dragAnchor;
-  positionForDragCursor(event.clientX, event.clientY);
+  pendingDrag = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+  };
   stage.setPointerCapture(event.pointerId);
   setInteractive(true);
 });
 
 stage.addEventListener("pointerup", (event) => {
-  if (!dragging) return;
+  if (pendingDrag?.pointerId === event.pointerId) {
+    pendingDrag = undefined;
+    releasePointer(event.pointerId);
+    setInteractive(hitTest(event.clientX, event.clientY));
+    return;
+  }
+  if (!dragging || dragPointerId !== event.pointerId) return;
   positionForDragCursor(event.clientX, event.clientY);
   dragging = false;
+  dragPointerId = undefined;
   pet.classList.remove("dragging");
-  stage.releasePointerCapture(event.pointerId);
+  releasePointer(event.pointerId);
   const target = safeDropTarget(
     position.x,
     position.y,
@@ -263,9 +317,17 @@ stage.addEventListener("pointerup", (event) => {
 });
 
 stage.addEventListener("contextmenu", (event) => {
-  if (!headHitTest(event.clientX, event.clientY)) return;
+  if (actionMenuOpen || !hitTest(event.clientX, event.clientY)) return;
   event.preventDefault();
-  startAction(event.shiftKey ? "eat" : "pet");
+  actionMenuOpen = true;
+  startAction("sit");
+  window.desktopPet.showActionMenu();
+});
+
+stage.addEventListener("dblclick", (event) => {
+  if (event.button !== 0 || !headHitTest(event.clientX, event.clientY)) return;
+  event.preventDefault();
+  startRequestedAction("pet");
 });
 
 window.addEventListener("resize", applySettings);
@@ -335,6 +397,20 @@ function positionForDragCursor(clientX, clientY) {
   position.y = clientY - dragOffset.y * scale - transformOffset;
 }
 
+function beginDrag(event) {
+  pendingDrag = undefined;
+  dragging = true;
+  dragPointerId = event.pointerId;
+  pet.classList.add("dragging");
+  startAction("pickupStart");
+  dragOffset = manifest.actions.pickupStart.dragAnchor;
+  positionForDragCursor(event.clientX, event.clientY);
+}
+
+function releasePointer(pointerId) {
+  if (stage.hasPointerCapture(pointerId)) stage.releasePointerCapture(pointerId);
+}
+
 function updateDropRecovery(now) {
   const elapsed = now - dropRecovery.startedAt;
   const progress = Math.min(1, elapsed / ACTION_DURATIONS.edgeReturn);
@@ -361,3 +437,10 @@ function effectiveScale() {
 }
 
 function randomIdleDelay() { return 6000 + Math.random() * 4000; }
+
+function closeActionMenu(now = performance.now()) {
+  if (!actionMenuOpen) return;
+  actionMenuOpen = false;
+  nextIdleAt = now + randomIdleDelay();
+  if (action === "sit" || action === "sitTail") startAction("sitReturn", now);
+}

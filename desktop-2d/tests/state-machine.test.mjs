@@ -7,12 +7,16 @@ import {
   chooseIdleAction,
   clampPosition,
   frameForElapsed,
+  hasExceededDragThreshold,
   isFullyOnScreen,
   isHeadRegion,
+  isSpecialIdleAction,
   nextActionAfterCompletion,
   nextDirection,
   pixelsPerSecond,
   safeDropTarget,
+  SPECIAL_IDLE_COOLDOWN_MS,
+  specialIdleSequenceDuration,
 } from "../src/state-machine.mjs";
 
 test("lie-down plays forward and reverse while staged actions play once", () => {
@@ -30,8 +34,11 @@ test("lie-down holds its final pose for three seconds", () => {
 });
 
 test("sleep breathing and sitting tail loops use requested durations", () => {
+  assert.equal(ACTION_DURATIONS.sit, 960);
   assert.equal(ACTION_DURATIONS.sleepBreathing, 10000);
   assert.equal(ACTION_DURATIONS.sitTail, 5000);
+  assert.equal(frameForElapsed("sit", 16, 60, ACTION_DURATIONS.sit, 899), 14);
+  assert.equal(frameForElapsed("sit", 16, 60, ACTION_DURATIONS.sit, 959), 15);
   assert.equal(frameForElapsed("sleepBreathing", 8, 180, 10000, 1440), 0);
   assert.equal(frameForElapsed("sitTail", 8, 140, 5000, 1120), 0);
   assert.equal(nextActionAfterCompletion("sit"), "sitTail");
@@ -39,6 +46,32 @@ test("sleep breathing and sitting tail loops use requested durations", () => {
   assert.equal(nextActionAfterCompletion("sleep"), "sleepBreathing");
   assert.equal(nextActionAfterCompletion("sleepBreathing"), "sleepReturn");
   assert.equal(nextActionAfterCompletion("sleepReturn"), "walk");
+});
+
+test("three rest variants and grooming enter, loop, then return to walking", () => {
+  for (const [name, loopDuration] of [
+    ["restCurled", 10000],
+    ["restLoaf", 10000],
+    ["restFaceDown", 10000],
+    ["groom", 5000],
+  ]) {
+    assert.equal(nextActionAfterCompletion(name), `${name}Loop`);
+    assert.equal(nextActionAfterCompletion(`${name}Loop`), `${name}Return`);
+    assert.equal(nextActionAfterCompletion(`${name}Return`), "walk");
+    assert.equal(ACTION_DURATIONS[`${name}Loop`], loopDuration);
+    assert.equal(frameForElapsed(`${name}Loop`, 8, 100, loopDuration, 800), 0);
+  }
+});
+
+test("special idle actions share a five-minute post-animation cooldown", () => {
+  assert.equal(SPECIAL_IDLE_COOLDOWN_MS, 300000);
+  assert.equal(isSpecialIdleAction("restCurled"), true);
+  assert.equal(isSpecialIdleAction("sleep"), true);
+  assert.equal(isSpecialIdleAction("sit"), false);
+  assert.equal(specialIdleSequenceDuration("restCurled"), 11920);
+  assert.equal(specialIdleSequenceDuration("groom"), 6920);
+  assert.equal(specialIdleSequenceDuration("sleep"), 12240);
+  assert.equal(specialIdleSequenceDuration("lieDown"), 4680);
 });
 
 test("picked-up animation loops while the cat is held", () => {
@@ -73,8 +106,29 @@ test("petting head region excludes the body", () => {
 test("idle action selection and direction are deterministic at boundaries", () => {
   assert.equal(chooseIdleAction(() => 0), "sit");
   assert.equal(chooseIdleAction(() => 0.999), "turn");
+  assert.equal(chooseIdleAction(() => 0.5, true), "restCurled");
+  assert.equal(chooseIdleAction(() => 0.999, true), "groom");
   assert.equal(nextDirection(1), -1);
   assert.equal(nextDirection(-1), 1);
+});
+
+test("disabled random actions are excluded while turning remains available", () => {
+  const disabled = {
+    sit: false,
+    lieDown: false,
+    sleep: false,
+    restCurled: false,
+    restLoaf: false,
+    restFaceDown: false,
+    groom: false,
+  };
+  assert.equal(chooseIdleAction(() => 0, true, disabled), "turn");
+  assert.equal(chooseIdleAction(() => 0.999, true, { ...disabled, groom: true }), "groom");
+});
+
+test("left click becomes a drag only after six pixels of movement", () => {
+  assert.equal(hasExceededDragThreshold(100, 100, 104, 104), false);
+  assert.equal(hasExceededDragThreshold(100, 100, 106, 100), true);
 });
 
 test("movement values remain inside supported ranges", () => {

@@ -20,6 +20,19 @@ SHEETS = {
     "pickupStart": ("07-pickup-start-8f.png", 80, False),
     "pickedUp": ("08-picked-up-scruff-loop-8f.png", 100, True),
     "landing": ("09-release-landing-8f.png", 100, False),
+    "restCurled": ("01-lie-down-curled-8f.png", 120, False),
+    "restCurledLoop": ("02-rest-breathing-curled-8f.png", 180, True),
+    "restLoaf": ("03-lie-down-loaf-8f.png", 120, False),
+    "restLoafLoop": ("04-rest-breathing-loaf-8f.png", 180, True),
+    "restFaceDown": ("05-lie-down-face-down-8f.png", 120, False),
+    "restFaceDownLoop": ("06-rest-breathing-face-down-8f.png", 180, True),
+    "groom": ("07-stand-to-groom-8f.png", 120, False),
+    "groomLoop": ("08-grooming-loop-8f.png", 140, True),
+}
+
+VARIANT_ACTIONS = {
+    "restCurled", "restCurledLoop", "restLoaf", "restLoafLoop",
+    "restFaceDown", "restFaceDownLoop", "groom", "groomLoop",
 }
 
 GRAB_ANCHOR = (320, 88)
@@ -277,10 +290,13 @@ def add_derived_action(actions, frames_dir, name, frames, frame_ms, loop):
 
 
 def main():
-    if len(sys.argv) != 3:
-        raise SystemExit("usage: import_transparent_8frame_pack.py SOURCE_DIR OUTPUT_DIR")
+    if len(sys.argv) not in (3, 4):
+        raise SystemExit(
+            "usage: import_transparent_8frame_pack.py SOURCE_DIR OUTPUT_DIR [VARIANT_SOURCE_DIR]"
+        )
     source_dir = Path(sys.argv[1])
     output_dir = Path(sys.argv[2])
+    variant_source_dir = Path(sys.argv[3]) if len(sys.argv) == 4 else source_dir
     frames_dir = output_dir / "frames"
     copied_source_dir = output_dir / "source"
     frames_dir.mkdir(parents=True, exist_ok=True)
@@ -289,7 +305,7 @@ def main():
     actions = {}
     landing_color_statistics = None
     for action, (filename, frame_ms, loop) in SHEETS.items():
-        source_path = source_dir / filename
+        source_path = (variant_source_dir if action in VARIANT_ACTIONS else source_dir) / filename
         if not source_path.is_file():
             raise FileNotFoundError(source_path)
         sheet = Image.open(source_path).convert("RGBA")
@@ -366,6 +382,12 @@ def main():
         "frameMs": actions["sleep"]["frameMs"],
         "loop": False,
     }
+    for name in ("restCurled", "restLoaf", "restFaceDown", "groom"):
+        actions[f"{name}Return"] = {
+            "frames": list(reversed(actions[name]["frames"])),
+            "frameMs": actions[name]["frameMs"],
+            "loop": False,
+        }
     actions["edgeReturn"] = {
         "frames": actions["landing"]["frames"],
         "frameMs": actions["landing"]["frameMs"],

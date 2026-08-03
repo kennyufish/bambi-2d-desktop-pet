@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("desktopPet", {
   getBootstrap: () => ipcRenderer.invoke("pet:get-bootstrap"),
   setInteractive: (interactive) => ipcRenderer.send("pet:set-interactive", Boolean(interactive)),
+  showActionMenu: () => ipcRenderer.send("pet:show-action-menu"),
   getSettings: () => ipcRenderer.invoke("settings:get"),
   saveSettings: (settings) => ipcRenderer.invoke("settings:save", settings),
   closeSettings: () => ipcRenderer.send("settings:close"),

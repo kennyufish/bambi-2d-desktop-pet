@@ -39,17 +39,25 @@
       "loop": true
     },
     "sit": {
-      "frames": [
-        "frames/sit-0.png",
-        "frames/sit-1.png",
-        "frames/sit-2.png",
-        "frames/sit-3.png",
-        "frames/sit-4.png",
-        "frames/sit-5.png",
-        "frames/sit-6.png",
-        "frames/sit-7.png"
-      ],
-      "frameMs": 120,
+        "frames": [
+            "frames/sit-0.png",
+            "frames/sit-1.png",
+            "frames/sit-2.png",
+            "frames/sit-3.png",
+            "frames/sit-4.png",
+            "frames/sit-5.png",
+            "frames/sit-6.png",
+            "frames/sit-7.png",
+            "frames/sit-8.png",
+            "frames/sit-9.png",
+            "frames/sit-10.png",
+            "frames/sit-11.png",
+            "frames/sit-12.png",
+            "frames/sit-13.png",
+            "frames/sit-14.png",
+            "frames/sit-15.png"
+        ],
+        "frameMs": 60,
       "loop": false
     },
     "lieDown": {
@@ -163,6 +171,118 @@
       "frameMs": 100,
       "loop": false
     },
+    "restCurled": {
+      "frames": [
+        "frames/restCurled-0.png",
+        "frames/restCurled-1.png",
+        "frames/restCurled-2.png",
+        "frames/restCurled-3.png",
+        "frames/restCurled-4.png",
+        "frames/restCurled-5.png",
+        "frames/restCurled-6.png",
+        "frames/restCurled-7.png"
+      ],
+      "frameMs": 120,
+      "loop": false
+    },
+    "restCurledLoop": {
+      "frames": [
+        "frames/restCurledLoop-0.png",
+        "frames/restCurledLoop-1.png",
+        "frames/restCurledLoop-2.png",
+        "frames/restCurledLoop-3.png",
+        "frames/restCurledLoop-4.png",
+        "frames/restCurledLoop-5.png",
+        "frames/restCurledLoop-6.png",
+        "frames/restCurledLoop-7.png"
+      ],
+      "frameMs": 180,
+      "loop": true
+    },
+    "restLoaf": {
+      "frames": [
+        "frames/restLoaf-0.png",
+        "frames/restLoaf-1.png",
+        "frames/restLoaf-2.png",
+        "frames/restLoaf-3.png",
+        "frames/restLoaf-4.png",
+        "frames/restLoaf-5.png",
+        "frames/restLoaf-6.png",
+        "frames/restLoaf-7.png"
+      ],
+      "frameMs": 120,
+      "loop": false
+    },
+    "restLoafLoop": {
+      "frames": [
+        "frames/restLoafLoop-0.png",
+        "frames/restLoafLoop-1.png",
+        "frames/restLoafLoop-2.png",
+        "frames/restLoafLoop-3.png",
+        "frames/restLoafLoop-4.png",
+        "frames/restLoafLoop-5.png",
+        "frames/restLoafLoop-6.png",
+        "frames/restLoafLoop-7.png"
+      ],
+      "frameMs": 180,
+      "loop": true
+    },
+    "restFaceDown": {
+      "frames": [
+        "frames/restFaceDown-0.png",
+        "frames/restFaceDown-1.png",
+        "frames/restFaceDown-2.png",
+        "frames/restFaceDown-3.png",
+        "frames/restFaceDown-4.png",
+        "frames/restFaceDown-5.png",
+        "frames/restFaceDown-6.png",
+        "frames/restFaceDown-7.png"
+      ],
+      "frameMs": 120,
+      "loop": false
+    },
+    "restFaceDownLoop": {
+      "frames": [
+        "frames/restFaceDownLoop-0.png",
+        "frames/restFaceDownLoop-1.png",
+        "frames/restFaceDownLoop-2.png",
+        "frames/restFaceDownLoop-3.png",
+        "frames/restFaceDownLoop-4.png",
+        "frames/restFaceDownLoop-5.png",
+        "frames/restFaceDownLoop-6.png",
+        "frames/restFaceDownLoop-7.png"
+      ],
+      "frameMs": 180,
+      "loop": true
+    },
+    "groom": {
+      "frames": [
+        "frames/groom-0.png",
+        "frames/groom-1.png",
+        "frames/groom-2.png",
+        "frames/groom-3.png",
+        "frames/groom-4.png",
+        "frames/groom-5.png",
+        "frames/groom-6.png",
+        "frames/groom-7.png"
+      ],
+      "frameMs": 120,
+      "loop": false
+    },
+    "groomLoop": {
+      "frames": [
+        "frames/groomLoop-0.png",
+        "frames/groomLoop-1.png",
+        "frames/groomLoop-2.png",
+        "frames/groomLoop-3.png",
+        "frames/groomLoop-4.png",
+        "frames/groomLoop-5.png",
+        "frames/groomLoop-6.png",
+        "frames/groomLoop-7.png"
+      ],
+      "frameMs": 140,
+      "loop": true
+    },
     "sleepBreathing": {
       "frames": [
         "frames/sleepBreathing-0.png",
@@ -193,6 +313,14 @@
     },
     "sitReturn": {
       "frames": [
+        "frames/sit-15.png",
+        "frames/sit-14.png",
+        "frames/sit-13.png",
+        "frames/sit-12.png",
+        "frames/sit-11.png",
+        "frames/sit-10.png",
+        "frames/sit-9.png",
+        "frames/sit-8.png",
         "frames/sit-7.png",
         "frames/sit-6.png",
         "frames/sit-5.png",
@@ -202,7 +330,7 @@
         "frames/sit-1.png",
         "frames/sit-0.png"
       ],
-      "frameMs": 120,
+      "frameMs": 60,
       "loop": false
     },
     "sleepReturn": {
@@ -217,6 +345,62 @@
         "frames/sleep-0.png"
       ],
       "frameMs": 140,
+      "loop": false
+    },
+    "restCurledReturn": {
+      "frames": [
+        "frames/restCurled-7.png",
+        "frames/restCurled-6.png",
+        "frames/restCurled-5.png",
+        "frames/restCurled-4.png",
+        "frames/restCurled-3.png",
+        "frames/restCurled-2.png",
+        "frames/restCurled-1.png",
+        "frames/restCurled-0.png"
+      ],
+      "frameMs": 120,
+      "loop": false
+    },
+    "restLoafReturn": {
+      "frames": [
+        "frames/restLoaf-7.png",
+        "frames/restLoaf-6.png",
+        "frames/restLoaf-5.png",
+        "frames/restLoaf-4.png",
+        "frames/restLoaf-3.png",
+        "frames/restLoaf-2.png",
+        "frames/restLoaf-1.png",
+        "frames/restLoaf-0.png"
+      ],
+      "frameMs": 120,
+      "loop": false
+    },
+    "restFaceDownReturn": {
+      "frames": [
+        "frames/restFaceDown-7.png",
+        "frames/restFaceDown-6.png",
+        "frames/restFaceDown-5.png",
+        "frames/restFaceDown-4.png",
+        "frames/restFaceDown-3.png",
+        "frames/restFaceDown-2.png",
+        "frames/restFaceDown-1.png",
+        "frames/restFaceDown-0.png"
+      ],
+      "frameMs": 120,
+      "loop": false
+    },
+    "groomReturn": {
+      "frames": [
+        "frames/groom-7.png",
+        "frames/groom-6.png",
+        "frames/groom-5.png",
+        "frames/groom-4.png",
+        "frames/groom-3.png",
+        "frames/groom-2.png",
+        "frames/groom-1.png",
+        "frames/groom-0.png"
+      ],
+      "frameMs": 120,
       "loop": false
     },
     "edgeReturn": {

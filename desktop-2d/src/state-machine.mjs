@@ -9,11 +9,32 @@ export const ACTION_DURATIONS = Object.freeze({
   sleep: 1120,
   sleepBreathing: 10000,
   sleepReturn: 1120,
+  restCurled: 960,
+  restCurledLoop: 10000,
+  restCurledReturn: 960,
+  restLoaf: 960,
+  restLoafLoop: 10000,
+  restLoafReturn: 960,
+  restFaceDown: 960,
+  restFaceDownLoop: 10000,
+  restFaceDownReturn: 960,
+  groom: 960,
+  groomLoop: 5000,
+  groomReturn: 960,
   landing: 800,
   edgeReturn: 800,
 });
 
-export const IDLE_ACTIONS = Object.freeze(["sit", "lieDown", "sleep", "turn"]);
+export const IDLE_ACTIONS = Object.freeze(["sit", "turn"]);
+export const SPECIAL_IDLE_ACTIONS = Object.freeze([
+  "lieDown",
+  "sleep",
+  "restCurled",
+  "restLoaf",
+  "restFaceDown",
+  "groom",
+]);
+export const SPECIAL_IDLE_COOLDOWN_MS = 5 * 60 * 1000;
 
 export function actionSequence(action, frameCount) {
   const forward = Array.from({ length: frameCount }, (_, index) => index);
@@ -25,7 +46,8 @@ export function actionSequence(action, frameCount) {
 
 export function frameForElapsed(action, frameCount, frameMs, durationMs, elapsedMs) {
   if (frameCount <= 1) return 0;
-  if (["walk", "idle", "pickedUp", "sitTail", "sleepBreathing"].includes(action)) {
+  if (["walk", "idle", "pickedUp", "sitTail", "sleepBreathing"].includes(action)
+      || action.endsWith("Loop")) {
     return Math.floor(elapsedMs / frameMs) % frameCount;
   }
   const forwardDuration = frameMs * (frameCount - 1);
@@ -38,8 +60,35 @@ export function frameForElapsed(action, frameCount, frameMs, durationMs, elapsed
   return Math.min(frameCount - 1, Math.floor(elapsedMs / frameMs));
 }
 
-export function chooseIdleAction(random = Math.random) {
-  return IDLE_ACTIONS[Math.min(IDLE_ACTIONS.length - 1, Math.floor(random() * IDLE_ACTIONS.length))];
+export function chooseIdleAction(random = Math.random, allowSpecial = false, enabledActions) {
+  const isEnabled = (action) => enabledActions?.[action] !== false;
+  const actions = [
+    ...(isEnabled("sit") ? ["sit"] : []),
+    "turn",
+    ...(allowSpecial ? SPECIAL_IDLE_ACTIONS.filter(isEnabled) : []),
+  ];
+  return actions[Math.min(actions.length - 1, Math.floor(random() * actions.length))];
+}
+
+export function isSpecialIdleAction(action) {
+  return SPECIAL_IDLE_ACTIONS.includes(action);
+}
+
+export function specialIdleSequenceDuration(action) {
+  if (!isSpecialIdleAction(action)) return 0;
+  if (action === "lieDown") return ACTION_DURATIONS.lieDown;
+  if (action === "sleep") {
+    return ACTION_DURATIONS.sleep
+      + ACTION_DURATIONS.sleepBreathing
+      + ACTION_DURATIONS.sleepReturn;
+  }
+  return ACTION_DURATIONS[action]
+    + ACTION_DURATIONS[`${action}Loop`]
+    + ACTION_DURATIONS[`${action}Return`];
+}
+
+export function hasExceededDragThreshold(startX, startY, currentX, currentY, threshold = 6) {
+  return Math.hypot(currentX - startX, currentY - startY) >= threshold;
 }
 
 export function nextDirection(direction) {
@@ -54,6 +103,18 @@ export function nextActionAfterCompletion(action) {
     sleep: "sleepBreathing",
     sleepBreathing: "sleepReturn",
     sleepReturn: "walk",
+    restCurled: "restCurledLoop",
+    restCurledLoop: "restCurledReturn",
+    restCurledReturn: "walk",
+    restLoaf: "restLoafLoop",
+    restLoafLoop: "restLoafReturn",
+    restLoafReturn: "walk",
+    restFaceDown: "restFaceDownLoop",
+    restFaceDownLoop: "restFaceDownReturn",
+    restFaceDownReturn: "walk",
+    groom: "groomLoop",
+    groomLoop: "groomReturn",
+    groomReturn: "walk",
   }[action] ?? "walk";
 }
 

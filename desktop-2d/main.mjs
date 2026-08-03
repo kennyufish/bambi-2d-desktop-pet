@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, Menu, nativeImage, screen, Tray } from "el
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { readSettings, writeSettings } from "./src/settings-store.mjs";
+import { RANDOM_ACTION_KEYS, readSettings, writeSettings } from "./src/settings-store.mjs";
 
 const appDirectory = path.dirname(fileURLToPath(import.meta.url));
 const activePackId = "orange-tabby";
@@ -80,6 +80,15 @@ function setScale(scale) {
   petWindow?.webContents.send("settings:changed", settings);
 }
 
+function setRandomAction(action, enabled) {
+  if (!RANDOM_ACTION_KEYS.includes(action)) return;
+  settings = writeSettings(settingsPath(), {
+    ...settings,
+    randomActions: { ...settings.randomActions, [action]: enabled },
+  });
+  petWindow?.webContents.send("settings:changed", settings);
+}
+
 function createTray() {
   const iconPath = path.join(appDirectory, "sprite-packs", activePackId, "frames", "idle-0.png");
   const icon = nativeImage.createFromPath(iconPath).resize({ width: 32, height: 32 });
@@ -139,9 +148,39 @@ ipcMain.on("pet:set-interactive", (_event, interactive) => {
   petWindow.setIgnoreMouseEvents(!interactive, { forward: !interactive });
 });
 
+ipcMain.on("pet:show-action-menu", (event) => {
+  if (!petWindow || petWindow.isDestroyed() || event.sender !== petWindow.webContents) return;
+  const actions = [
+    ["sit", "坐下"],
+    ["lieDown", "趴下"],
+    ["sleep", "睡觉"],
+    ["restCurled", "休息 1（蜷缩）"],
+    ["restLoaf", "休息 2（香箱）"],
+    ["restFaceDown", "休息 3（趴睡）"],
+    ["groom", "舔毛"],
+  ];
+  const menu = Menu.buildFromTemplate([
+    { label: "随机动作开关", enabled: false },
+    { type: "separator" },
+    ...actions.map(([action, label]) => ({
+      label,
+      type: "checkbox",
+      checked: settings.randomActions[action],
+      click: (item) => setRandomAction(action, item.checked),
+    })),
+    { type: "separator" },
+    { label: "打开设置", click: createSettingsWindow },
+    { label: "退出程序", click: () => app.quit() },
+  ]);
+  menu.popup({
+    window: petWindow,
+    callback: () => sendCommand("menu-closed"),
+  });
+});
+
 ipcMain.handle("settings:get", () => settings);
 ipcMain.handle("settings:save", (_event, value) => {
-  settings = writeSettings(settingsPath(), value);
+  settings = writeSettings(settingsPath(), { ...settings, ...value });
   app.setLoginItemSettings({ openAtLogin: settings.openAtLogin, path: process.execPath });
   petWindow?.webContents.send("settings:changed", settings);
   return settings;

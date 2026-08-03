@@ -34,22 +34,8 @@ body { font-family: system-ui, sans-serif; }
   object-position: center bottom;
   opacity: 0;
   pointer-events: none;
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,.08));
 }
 .frame.visible { opacity: 1; }
-#shadow {
-  position: absolute;
-  left: 14%;
-  right: 14%;
-  bottom: 4%;
-  height: 8%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(0,0,0,.26), rgba(0,0,0,0) 72%);
-  transform: scaleY(.55) scaleX(var(--shadow-scale, 1));
-  opacity: var(--shadow-opacity, .7);
-  filter: blur(5px);
-}
-#pet.dragging #shadow { --shadow-scale: .8; --shadow-opacity: .4; }
 #pet.paused #tilt { animation-play-state: paused; }
 @keyframes breathe {
   0%, 100% { translate: 0 0; }
