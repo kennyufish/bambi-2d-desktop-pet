@@ -21,6 +21,7 @@ import {
   pixelsPerSecond,
   randomGroomLoopDuration,
   safeDropTarget,
+  safeRecoveryPosition,
   REST_BREATHING_DURATION_MS,
   specialIdleSequenceDuration,
 } from "../src/state-machine.mjs";
@@ -179,4 +180,8 @@ test("drop targets move edge releases fully back on screen", () => {
   const target = safeDropTarget(950, 650, 0.5, 520,
     { left: 0, top: 60, right: 520, bottom: 500 }, 1000, 700);
   assert.deepEqual(target, { x: 728, y: 178 });
+});
+
+test("recovery position is centered with a visible bottom margin", () => {
+  assert.deepEqual(safeRecoveryPosition(520, 520, 0.5, 1000, 700), { x: 370, y: 168 });
 });

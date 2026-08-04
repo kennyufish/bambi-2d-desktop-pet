@@ -184,6 +184,26 @@ export function safeDropTarget(
   };
 }
 
+export function safeRecoveryPosition(
+  canvasWidth,
+  canvasHeight,
+  scale,
+  viewportWidth,
+  viewportHeight,
+  padding = 12,
+) {
+  return safeDropTarget(
+    (viewportWidth - canvasWidth * scale) / 2,
+    viewportHeight - canvasHeight,
+    scale,
+    canvasHeight,
+    { left: 0, top: 0, right: canvasWidth, bottom: canvasHeight },
+    viewportWidth,
+    viewportHeight,
+    padding,
+  );
+}
+
 export function pixelsPerSecond(speed) {
   return 200 * Math.min(1.2, Math.max(0.2, speed));
 }

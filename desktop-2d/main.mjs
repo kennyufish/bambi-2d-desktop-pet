@@ -1,9 +1,18 @@
-import { app, BrowserWindow, ipcMain, Menu, nativeImage, screen, Tray } from "electron";
+import {
+  app,
+  BrowserWindow,
+  globalShortcut,
+  ipcMain,
+  Menu,
+  nativeImage,
+  screen,
+  Tray,
+} from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { RANDOM_ACTION_KEYS, readSettings, writeSettings } from "./src/settings-store.mjs";
-import { clampPetPosition } from "./src/state-machine.mjs";
+import { clampPetPosition, safeRecoveryPosition } from "./src/state-machine.mjs";
 import {
   readPetState,
   sanitizePetState,
@@ -92,6 +101,19 @@ function placePetWindow(display, position = petState.position) {
   const nextPosition = setActiveDisplay(display, position);
   petWindow?.setBounds(display.bounds);
   sendCommand("set-position", nextPosition);
+}
+
+function findCat() {
+  if (!petWindow || petWindow.isDestroyed()) return;
+  const display = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+  const position = safeRecoveryPosition(
+    manifest.canvas.width,
+    manifest.canvas.height,
+    effectiveScale(),
+    display.bounds.width,
+    display.bounds.height,
+  );
+  placePetWindow(display, position);
 }
 
 function currentPetDisplay() {
@@ -193,6 +215,7 @@ function createTray() {
   rebuildTray = () => {
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: "打开设置", click: createSettingsWindow },
+      { label: "找回猫咪", click: findCat },
       { type: "separator" },
       {
         label: petState.paused ? "继续桌宠" : "暂停桌宠",
@@ -216,6 +239,7 @@ app.whenReady().then(() => {
   app.setLoginItemSettings({ openAtLogin: settings.openAtLogin, path: process.execPath });
   createPetWindow();
   createTray();
+  globalShortcut.register("Control+Shift+H", findCat);
   pointerProbeTimer = setInterval(() => {
     if (!petWindow || petWindow.isDestroyed()) return;
     const cursor = screen.getCursorScreenPoint();
@@ -236,6 +260,7 @@ app.whenReady().then(() => {
 app.on("window-all-closed", (event) => event.preventDefault());
 app.on("before-quit", () => {
   clearInterval(pointerProbeTimer);
+  globalShortcut.unregister("Control+Shift+H");
   flushPetState();
   tray?.destroy();
 });
