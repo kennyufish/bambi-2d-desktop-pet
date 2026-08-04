@@ -2,7 +2,7 @@ import {
   ACTION_DURATIONS,
   advanceWrappedPosition,
   chooseIdleAction,
-  clampPosition,
+  clampPetPosition,
   frameForElapsed,
   hasExceededDragThreshold,
   isFullyOnScreen,
@@ -56,23 +56,37 @@ let frameRequestId = 0;
 let actionMenuOpen = false;
 let restState;
 let fixedRest = false;
+let stateSaveTimer;
+let stateSaveQueued = false;
+let lastStateSaveAt = 0;
 const frameBounds = new Map();
+const STATE_SAVE_INTERVAL_MS = 1000;
 
 const bootstrap = await window.desktopPet.getBootstrap();
 manifest = bootstrap.manifest;
 packId = bootstrap.packId;
 settings = bootstrap.settings;
+fixedRest = Boolean(bootstrap.petState?.fixedRest);
+paused = Boolean(bootstrap.petState?.paused);
 pet.style.width = `${manifest.canvas.width}px`;
 pet.style.height = `${manifest.canvas.height}px`;
-position.y = window.innerHeight - manifest.canvas.height - 8;
+position = bootstrap.petState?.position
+  ? { ...bootstrap.petState.position }
+  : { x: 40, y: window.innerHeight - manifest.canvas.height - 8 };
+pet.classList.toggle("paused", paused);
 applySettings();
 await preloadFrames();
 await showFrame("idle", 0, true);
+if (fixedRest) startPinnedRest();
 
 window.desktopPet.onCommand(({ type, value }) => {
-  if (type === "pause") {
-    paused = !paused;
+  if (type === "set-paused") {
+    paused = Boolean(value);
     pet.classList.toggle("paused", paused);
+  }
+  if (type === "set-position" && value) {
+    position = { ...value };
+    applySettings();
   }
   if (type === "menu-closed") closeActionMenu();
   if (type === "set-fixed-rest") setFixedRest(Boolean(value));
@@ -250,6 +264,7 @@ function updateRest(now) {
 
 function tick(now) {
   const deltaSeconds = Math.min(0.05, (now - previousTick) / 1000);
+  const previousPosition = { ...position };
   previousTick = now;
   if (!paused) {
     if (dropRecovery && action === "edgeReturn") updateDropRecovery(now);
@@ -298,6 +313,7 @@ function tick(now) {
     }
   }
   renderPosition();
+  if (position.x !== previousPosition.x || position.y !== previousPosition.y) requestStateSave();
   requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
@@ -308,10 +324,32 @@ function renderPosition() {
   pet.style.setProperty("--facing", String(direction));
 }
 
+function requestStateSave() {
+  stateSaveQueued = true;
+  if (stateSaveTimer) return;
+  const delay = Math.max(0, STATE_SAVE_INTERVAL_MS - (performance.now() - lastStateSaveAt));
+  stateSaveTimer = setTimeout(() => {
+    stateSaveTimer = undefined;
+    if (!stateSaveQueued) return;
+    stateSaveQueued = false;
+    lastStateSaveAt = performance.now();
+    window.desktopPet.saveState({ position: { ...position } });
+  }, delay);
+}
+
 function applySettings() {
   pet.style.setProperty("--pet-scale", String(effectiveScale()));
-  position.x = clampPosition(position.x, manifest.canvas.width * effectiveScale(), window.innerWidth);
-  position.y = clampVerticalPosition(position.y);
+  const nextPosition = clampPetPosition(
+    position,
+    manifest.canvas.width,
+    manifest.canvas.height,
+    window.innerWidth,
+    window.innerHeight,
+    effectiveScale(),
+  );
+  const changed = nextPosition.x !== position.x || nextPosition.y !== position.y;
+  position = nextPosition;
+  if (changed) requestStateSave();
 }
 
 stage.addEventListener("pointermove", (event) => {
@@ -539,9 +577,14 @@ function setInteractive(value) {
 }
 
 function clampVerticalPosition(y) {
-  const scaledHeight = manifest.canvas.height * effectiveScale();
-  const transformOffset = manifest.canvas.height - scaledHeight;
-  return Math.max(-transformOffset, Math.min(window.innerHeight - manifest.canvas.height, y));
+  return clampPetPosition(
+    { x: position.x, y },
+    manifest.canvas.width,
+    manifest.canvas.height,
+    window.innerWidth,
+    window.innerHeight,
+    effectiveScale(),
+  ).y;
 }
 
 function effectiveScale() {

@@ -119,6 +119,22 @@ export function clampPosition(x, spriteWidth, viewportWidth, padding = 12) {
   return Math.max(padding, Math.min(viewportWidth - spriteWidth - padding, x));
 }
 
+export function clampPetPosition(
+  position,
+  canvasWidth,
+  canvasHeight,
+  viewportWidth,
+  viewportHeight,
+  scale,
+  padding = 12,
+) {
+  const transformOffset = canvasHeight * (1 - scale);
+  return {
+    x: clampPosition(position.x, canvasWidth * scale, viewportWidth, padding),
+    y: Math.max(-transformOffset, Math.min(viewportHeight - canvasHeight, position.y)),
+  };
+}
+
 export function advanceWrappedPosition(
   x,
   direction,

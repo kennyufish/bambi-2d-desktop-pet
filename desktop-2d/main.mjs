@@ -3,16 +3,28 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { RANDOM_ACTION_KEYS, readSettings, writeSettings } from "./src/settings-store.mjs";
+import { clampPetPosition } from "./src/state-machine.mjs";
+import {
+  readPetState,
+  sanitizePetState,
+  selectPetDisplay,
+  writePetState,
+} from "./src/pet-state.mjs";
 
 const appDirectory = path.dirname(fileURLToPath(import.meta.url));
 const activePackId = "orange-tabby";
 const manifestPath = path.join(appDirectory, "sprite-packs", activePackId, "manifest.json");
+const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+const PET_STATE_WRITE_DELAY_MS = 500;
 let petWindow;
 let settingsWindow;
 let tray;
 let settings;
+let petState;
 let pointerProbeTimer;
-let fixedRest = false;
+let stateWriteTimer;
+let activeDisplayId;
+let rebuildTray;
 
 app.setName("YourCatDesktopPet");
 
@@ -20,8 +32,80 @@ function settingsPath() {
   return path.join(app.getPath("userData"), "settings.json");
 }
 
+function petStatePath() {
+  return path.join(app.getPath("userData"), "pet-state.json");
+}
+
+function schedulePetStateWrite() {
+  if (stateWriteTimer) return;
+  stateWriteTimer = setTimeout(() => {
+    stateWriteTimer = undefined;
+    writePetState(petStatePath(), petState);
+  }, PET_STATE_WRITE_DELAY_MS);
+}
+
+function flushPetState() {
+  if (stateWriteTimer) {
+    clearTimeout(stateWriteTimer);
+    stateWriteTimer = undefined;
+  }
+  if (petState) writePetState(petStatePath(), petState);
+}
+
+function updatePetState(value) {
+  const next = sanitizePetState({ ...petState, ...value });
+  if (value.position !== undefined && !next.position) return;
+  petState = next;
+  schedulePetStateWrite();
+}
+
+function effectiveScale() {
+  return settings.scale * (manifest.canvas.displayScale ?? 1);
+}
+
+function defaultPosition(display) {
+  return {
+    x: 40,
+    y: display.bounds.height - manifest.canvas.height - 8,
+  };
+}
+
+function positionForDisplay(display, position = petState.position) {
+  return clampPetPosition(
+    position ?? defaultPosition(display),
+    manifest.canvas.width,
+    manifest.canvas.height,
+    display.bounds.width,
+    display.bounds.height,
+    effectiveScale(),
+  );
+}
+
+function setActiveDisplay(display, position = petState.position) {
+  const nextPosition = positionForDisplay(display, position);
+  activeDisplayId = display.id;
+  updatePetState({ displayId: display.id, position: nextPosition });
+  return nextPosition;
+}
+
+function placePetWindow(display, position = petState.position) {
+  const nextPosition = setActiveDisplay(display, position);
+  petWindow?.setBounds(display.bounds);
+  sendCommand("set-position", nextPosition);
+}
+
+function currentPetDisplay() {
+  return selectPetDisplay(
+    activeDisplayId ?? petState.displayId,
+    screen.getAllDisplays(),
+    screen.getPrimaryDisplay(),
+  );
+}
+
 function createPetWindow() {
-  const bounds = screen.getPrimaryDisplay().bounds;
+  const display = currentPetDisplay();
+  setActiveDisplay(display);
+  const bounds = display.bounds;
   petWindow = new BrowserWindow({
     ...bounds,
     transparent: true,
@@ -90,16 +174,30 @@ function setRandomAction(action, enabled) {
   petWindow?.webContents.send("settings:changed", settings);
 }
 
+function setPaused(value) {
+  updatePetState({ paused: Boolean(value) });
+  sendCommand("set-paused", petState.paused);
+  rebuildTray?.();
+}
+
+function setFixedRest(value) {
+  updatePetState({ fixedRest: Boolean(value) });
+  sendCommand("set-fixed-rest", petState.fixedRest);
+}
+
 function createTray() {
   const iconPath = path.join(appDirectory, "sprite-packs", activePackId, "frames", "idle-0.png");
   const icon = nativeImage.createFromPath(iconPath).resize({ width: 32, height: 32 });
   tray = new Tray(icon);
   tray.setToolTip("Your Cat Desktop Pet");
-  const rebuild = (paused = false) => {
+  rebuildTray = () => {
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: "打开设置", click: createSettingsWindow },
       { type: "separator" },
-      { label: paused ? "继续桌宠" : "暂停桌宠", click: () => { sendCommand("pause"); rebuild(!paused); } },
+      {
+        label: petState.paused ? "继续桌宠" : "暂停桌宠",
+        click: () => setPaused(!petState.paused),
+      },
       { type: "separator" },
       { label: "尺寸 75%", click: () => setScale(0.75) },
       { label: "尺寸 100%", click: () => setScale(1) },
@@ -108,12 +206,13 @@ function createTray() {
       { label: "退出", click: () => app.quit() },
     ]));
   };
-  rebuild(false);
+  rebuildTray();
   tray.on("double-click", createSettingsWindow);
 }
 
 app.whenReady().then(() => {
   settings = readSettings(settingsPath());
+  petState = readPetState(petStatePath());
   app.setLoginItemSettings({ openAtLogin: settings.openAtLogin, path: process.execPath });
   createPetWindow();
   createTray();
@@ -126,27 +225,37 @@ app.whenReady().then(() => {
       y: cursor.y - bounds.y,
     });
   }, 33);
-  screen.on("display-metrics-changed", () => {
-    petWindow?.setBounds(screen.getPrimaryDisplay().bounds);
-  });
+  const syncPetDisplay = () => {
+    if (!petWindow || petWindow.isDestroyed()) return;
+    placePetWindow(currentPetDisplay());
+  };
+  screen.on("display-metrics-changed", syncPetDisplay);
+  screen.on("display-removed", syncPetDisplay);
 });
 
 app.on("window-all-closed", (event) => event.preventDefault());
 app.on("before-quit", () => {
   clearInterval(pointerProbeTimer);
+  flushPetState();
   tray?.destroy();
 });
 
 ipcMain.handle("pet:get-bootstrap", () => ({
   packId: activePackId,
-  manifest: JSON.parse(fs.readFileSync(manifestPath, "utf8")),
+  manifest,
   settings,
-  display: screen.getPrimaryDisplay().bounds,
+  petState,
+  display: currentPetDisplay().bounds,
 }));
 
 ipcMain.on("pet:set-interactive", (_event, interactive) => {
   if (!petWindow || petWindow.isDestroyed()) return;
   petWindow.setIgnoreMouseEvents(!interactive, { forward: !interactive });
+});
+
+ipcMain.on("pet:state", (event, value) => {
+  if (!petWindow || petWindow.isDestroyed() || event.sender !== petWindow.webContents) return;
+  updatePetState({ position: value?.position });
 });
 
 ipcMain.on("pet:show-action-menu", (event) => {
@@ -172,11 +281,8 @@ ipcMain.on("pet:show-action-menu", (event) => {
     {
       label: "固定休息",
       type: "checkbox",
-      checked: fixedRest,
-      click: (item) => {
-        fixedRest = item.checked;
-        sendCommand("set-fixed-rest", fixedRest);
-      },
+      checked: petState.fixedRest,
+      click: (item) => setFixedRest(item.checked),
     },
     { type: "separator" },
     { label: "打开设置", click: createSettingsWindow },

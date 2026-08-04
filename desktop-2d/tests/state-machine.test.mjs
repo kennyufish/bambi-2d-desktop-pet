@@ -7,6 +7,7 @@ import {
   actionSequence,
   chooseIdleAction,
   clampPosition,
+  clampPetPosition,
   GROOM_LOOP_MAX_DURATION_MS,
   GROOM_LOOP_MIN_DURATION_MS,
   frameForElapsed,
@@ -151,6 +152,14 @@ test("movement values remain inside supported ranges", () => {
   assert.equal(clampPosition(900, 200, 1000), 788);
   assert.equal(pixelsPerSecond(0), 40);
   assert.equal(pixelsPerSecond(2), 240);
+});
+
+test("restored positions are clamped to the selected display viewport", () => {
+  assert.deepEqual(
+    clampPetPosition({ x: -50, y: 900 }, 520, 520, 1000, 700, 0.5),
+    { x: 12, y: 180 },
+  );
+  assert.equal(clampPetPosition({ x: 50, y: -999 }, 520, 520, 1000, 700, 0.5).y, -260);
 });
 
 test("walking wraps at both screen edges and accelerates while crossing", () => {
