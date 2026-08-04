@@ -21,10 +21,9 @@ def main():
         assert manifest["actions"][action].get("dragAnchor") == {"x": 320, "y": 88}
     expected_size = (manifest["canvas"]["width"], manifest["canvas"]["height"])
     for action, config in manifest["actions"].items():
-        expected_frame_count = 3 if action == "groomLoop" else 8
-        assert len(config["frames"]) == expected_frame_count, (
-            f"{action}: expected {expected_frame_count} frames"
-        )
+        assert len(config["frames"]) == 8, f"{action}: expected 8 frames"
+        if action == "groomLoop":
+            assert config["frames"] == [f"frames/groomLoop-{index}.png" for index in range(8)]
         for relative in config["frames"]:
             image = Image.open(pack / relative).convert("RGBA")
             assert image.size == expected_size, f"{relative}: wrong canvas"

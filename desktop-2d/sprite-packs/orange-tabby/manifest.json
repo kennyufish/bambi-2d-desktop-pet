@@ -207,11 +207,16 @@
     },
     "groomLoop": {
       "frames": [
-        "frames/groom-5.png",
-        "frames/groom-6.png",
-        "frames/groom-7.png"
+        "frames/groomLoop-0.png",
+        "frames/groomLoop-1.png",
+        "frames/groomLoop-2.png",
+        "frames/groomLoop-3.png",
+        "frames/groomLoop-4.png",
+        "frames/groomLoop-5.png",
+        "frames/groomLoop-6.png",
+        "frames/groomLoop-7.png"
       ],
-      "frameMs": 120,
+      "frameMs": 140,
       "loop": true
     },
     "sleepBreathing": {

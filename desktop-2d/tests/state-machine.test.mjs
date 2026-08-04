@@ -60,20 +60,30 @@ test("rest variants hold with procedural breathing while grooming retains its lo
   assert.equal(nextActionAfterCompletion("groomReturn"), "walk");
 });
 
-test("grooming loop reuses grooming frames six through eight", () => {
+test("grooming loop uses eight independent frames at its source timing", () => {
   const manifest = JSON.parse(fs.readFileSync(
     new URL("../sprite-packs/orange-tabby/manifest.json", import.meta.url),
     "utf8",
   ));
   assert.deepEqual(manifest.actions.groomLoop.frames, [
-    "frames/groom-5.png",
-    "frames/groom-6.png",
-    "frames/groom-7.png",
+    "frames/groomLoop-0.png",
+    "frames/groomLoop-1.png",
+    "frames/groomLoop-2.png",
+    "frames/groomLoop-3.png",
+    "frames/groomLoop-4.png",
+    "frames/groomLoop-5.png",
+    "frames/groomLoop-6.png",
+    "frames/groomLoop-7.png",
   ]);
-  assert.equal(frameForElapsed("groomLoop", 3, 120, 3000, 0), 0);
-  assert.equal(frameForElapsed("groomLoop", 3, 120, 3000, 119), 0);
-  assert.equal(frameForElapsed("groomLoop", 3, 120, 3000, 120), 1);
-  assert.equal(frameForElapsed("groomLoop", 3, 120, 3000, 360), 0);
+  assert.equal(manifest.actions.groomLoop.frameMs, 140);
+  assert.equal(manifest.actions.groomLoop.loop, true);
+  assert.equal(manifest.actions.groomLoop.frames.some(
+    (frame) => manifest.actions.groom.frames.includes(frame),
+  ), false);
+  assert.equal(frameForElapsed("groomLoop", 8, 140, 3000, 0), 0);
+  assert.equal(frameForElapsed("groomLoop", 8, 140, 3000, 139), 0);
+  assert.equal(frameForElapsed("groomLoop", 8, 140, 3000, 140), 1);
+  assert.equal(frameForElapsed("groomLoop", 8, 140, 3000, 1120), 0);
 });
 
 test("grooming loop duration is a random whole number of seconds from three to eight", () => {
