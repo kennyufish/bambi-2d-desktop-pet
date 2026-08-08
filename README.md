@@ -23,6 +23,20 @@ desktop feel a little warmer without getting in the way of work.
 This repository contains the desktop software and its sprite-processing tools
 only. Website and cloud-service prototypes are intentionally excluded.
 
+## Animation previews
+
+### Walking across the desktop
+
+![Bambi walking across the desktop](docs/media/bambi-walking.gif)
+
+### Grooming
+
+![Bambi starting and continuing to groom](docs/media/bambi-grooming.gif)
+
+### Pickup and landing
+
+![Bambi being picked up and returning to the ground](docs/media/bambi-pickup-and-landing.gif)
+
 ## Current features
 
 - Transparent, borderless, always-on-top Windows 10/11 overlay.
@@ -204,6 +218,12 @@ npm test
 The test command validates the sprite pack and grooming palette, then runs the
 settings, persistence, movement, hit-region, animation, pickup, landing, rest,
 and recovery unit tests.
+
+Rebuild the README animation previews from the current sprite pack with:
+
+```powershell
+python ..\tools\build_readme_gifs.py
+```
 
 Automated checks do not replace real Windows interaction testing. Transparent
 click-through behavior, global shortcut conflicts, multiple physical displays,
