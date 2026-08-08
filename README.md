@@ -8,6 +8,18 @@ a lightweight animated desktop overlay instead of a real-time 3D model.
 > the application has not completed broad multi-monitor, long-running,
 > installer, code-signing, or end-user acceptance testing.
 
+## Why Bambi?
+
+Bambi is the name of my cat. I started this project because I wanted to be able
+to see Bambi on my desktop while I work, even when my real cat is somewhere else
+resting or exploring. What began as a small personal companion gradually became
+an experiment in transparent windows, animation, interaction, and preserving a
+cat's recognizable appearance in a desktop character.
+
+The project is still growing, and I may add more behaviors, interactions, and
+personalization features over time. The main goal will stay the same: make the
+desktop feel a little warmer without getting in the way of work.
+
 This repository contains the desktop software and its sprite-processing tools
 only. Website and cloud-service prototypes are intentionally excluded.
 
