@@ -47,3 +47,30 @@ next-env.d.ts
 /desktop-2d/node_modules/
 /desktop-2d/dist/
 /desktop-2d/test-results/
+
+# Local website prototype (not part of the desktop-pet repository)
+/.openai/
+/app/
+/db/
+/drizzle/
+/examples/
+/public/
+/tests/
+/worker/
+/drizzle.config.ts
+/eslint.config.mjs
+/next.config.ts
+/package.json
+/pnpm-lock.yaml
+/pnpm-workspace.yaml
+/postcss.config.mjs
+/tsconfig.json
+/vite.config.ts
+
+# Local generation scratch files and exported source batches
+/output/
+/tmp/
+
+# Python cache files created by sprite validation
+__pycache__/
+*.py[cod]
