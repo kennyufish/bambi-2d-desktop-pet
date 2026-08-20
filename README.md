@@ -313,6 +313,7 @@ cleanly by a non-technical Windows user.
 
 ## License and contributions
 
-No open-source license has been selected. Until a license is added, the code and
-visual assets remain all rights reserved. Contribution and redistribution rules
-should be defined before accepting external submissions.
+This project is open source under the [MIT License](LICENSE). You may use,
+modify, and distribute it subject to the license terms. Contributions are
+welcome; contribution guidelines and issue templates may be added as the Beta
+matures.
